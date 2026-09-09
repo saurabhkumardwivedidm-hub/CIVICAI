@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIVICAI – Executive Analytics & Citizen Feedback</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='civicai.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='civicai-logo.svg') }}">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .analytics-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .analytics-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card-analytics {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-card-analytics strong {
+            display: block;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--brand-dark);
+            margin-top: 4px;
+        }
+
+        .stat-card-analytics span {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        .charts-2x2-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .chart-box-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chart-box-card h3 {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--brand-dark);
+            margin-bottom: 16px;
+        }
+
+        .canvas-wrap {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+
+        /* Citizen Feedback Section */
+        .feedback-analytics-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 30px;
+        }
+
+        .feedback-metrics-row {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 28px;
+            margin-top: 18px;
+        }
+
+        .avg-rating-hero {
+            text-align: center;
+            background: #fefce8;
+            border: 1px solid #fef08a;
+            border-radius: var(--radius-md);
+            padding: 24px 16px;
+        }
+
+        .avg-score {
+            font-size: 48px;
+            font-weight: 900;
+            color: #b45309;
+            line-height: 1;
+        }
+
+        .avg-stars {
+            color: #f59e0b;
+            font-size: 22px;
+            margin: 6px 0;
+        }
+
+        .rating-bars-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .rating-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+        }
+
+        .rating-bar-fill-track {
+            flex: 1;
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .rating-bar-fill {
+            height: 100%;
+            background: #f59e0b;
+            border-radius: var(--radius-full);
+        }
+
+        .recent-feedback-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+
+        .recent-feedback-table th {
+            background: #f8fafc;
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .recent-feedback-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--brand-dark);
+        }
+
+        @media (max-width: 960px) {
+            .analytics-stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .charts-2x2-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feedback-metrics-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .analytics-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="civic-navbar">
+        <div class="civic-nav-inner">
+
+            <a class="civic-brand" href="/">
+                <img
+                    src="{{ url_for('static', filename='civicai-logo.svg') }}"
+                    alt="CIVICAI"
+                >
+
+                <div class="civic-brand-text">
+                    <strong>CIVICAI</strong>
+                    <small>Municipal Executive Analytics</small>
+                </div>
+            </a>
+
+            <div class="civic-nav-links">
+                <a href="/supervisor">👨‍💼 Operations Panel</a>
+                <a href="/dashboard" class="active">📈 Analytics & Feedback</a>
+                <a href="/worker">👷 Worker View</a>
+            </div>
+
+            <div class="civic-nav-actions">
+
+                <div class="user-badge">
+                    <span>👨‍💼 {{ current_user.name }}</span>
+                    <span class="role-pill">Supervisor</span>
+                </div>
+
+                <a
+                    href="/logout"
+                    class="btn btn-secondary"
+                    style="padding: 6px 14px; font-size: 13px;"
+                >
+                    Logout
+                </a>
+
+            </div>
+
+        </div>
+    </nav>
+
+
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+            <div class="flash-messages">
+
+                {% for category, message in messages %}
+
+                    <div class="alert {{ category }}">
+                        {{ message }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+    {% endwith %}
+
+
+    <main class="main-content">
+
+        <div class="container-wide">
+
+
+            <!-- HEADER -->
+            <div class="analytics-header">
+
+                <div>
+
+                    <h1
+                        style="
+                            font-size: 26px;
+                            font-weight: 800;
+                            color: var(--brand-dark);
+                        "
+                    >
+                        Civic Intelligence & Citizen Feedback Analytics
+                    </h1>
+
+                    <p
+                        style="
+                            color: var(--text-muted);
+                            font-size: 14px;
+                        "
+                    >
+                        Data-driven performance metrics, department load
+                        breakdown, and public satisfaction insights.
+                    </p>
+
+                </div>
+
+
+                <a
+                    href="/supervisor"
+                    class="btn btn-primary"
+                    style="font-size: 13px;"
+                >
+                    ← Back to Operations Panel
+                </a>
+
+            </div>
+
+
+            <!-- OVERVIEW STATS -->
+            <section class="analytics-stats-grid">
+
+                <div class="stat-card-analytics">
+
+                    <span>Total Complaints</span>
+
+                    <strong>
+                        {{ total }}
+                    </strong>
+
+                </div>
+
+
+                <div
+                    class="stat-card-analytics"
+                    style="border-left: 4px solid var(--warning);"
+                >
+
+                    <span>Pending Action</span>
+
+                    <strong style="color: #b45309;">
+                        {{ pending }}
+                    </strong>
+
+                </div>
+
+
+                <div
+                    class="stat-card-analytics"
+                    style="border-left: 4px solid var(--danger);"
+                >
+
+                    <span>High Priority</span>
+
+                    <strong style="color: var(--danger);">
+                        {{ high_priority }}
+                    </strong>
+
+                </div>
+
+
+                <div
+                    class="stat-card-analytics"
+                    style="border-left: 4px solid var(--brand-blue);"
+                >
+
+                    <span>In Progress</span>
+
+                    <strong style="color: var(--brand-blue);">
+                        {{ progress }}
+                    </strong>
+
+                </div>
+
+
+                <div
+                    class="stat-card-analytics"
+                    style="border-left: 4px solid var(--success);"
+                >
+
+                    <span>Resolved</span>
+
+                    <strong style="color: var(--success);">
+                        {{ resolved }}
+                    </strong>
+
+                </div>
+
+            </section>
+
+
+            <!-- CHART GRID -->
+            <section class="charts-2x2-grid">
+
+
+                <!-- CATEGORY CHART -->
+                <div class="chart-box-card">
+
+                    <h3>
+                        📂 Complaints by Issue Category
+                    </h3>
+
+                    <div class="canvas-wrap">
+
+                        <canvas id="categoryChart"></canvas>
+
+                    </div>
+
+                </div>
+
+
+                <!-- PRIORITY CHART -->
+                <div class="chart-box-card">
+
+                    <h3>
+                        🎯 AI Priority Distribution
+                    </h3>
+
+                    <div class="canvas-wrap">
+
+                        <canvas id="priorityChart"></canvas>
+
+                    </div>
+
+                </div>
+
+
+                <!-- DEPARTMENT CHART -->
+                <div class="chart-box-card">
+
+                    <h3>
+                        🏢 Department-wise Workload
+                    </h3>
+
+                    <div class="canvas-wrap">
+
+                        <canvas id="departmentChart"></canvas>
+
+                    </div>
+
+                </div>
+
+
+                <!-- STATUS CHART -->
+                <div class="chart-box-card">
+
+                    <h3>
+                        📌 Complaint Status Breakdown
+                    </h3>
+
+                    <div class="canvas-wrap">
+
+                        <canvas id="statusChart"></canvas>
+
+                    </div>
+
+                </div>
+
+
+            </section>
+
+
+            <!-- CITIZEN FEEDBACK -->
+            <section class="feedback-analytics-card">
+
+
+                <div
+                    style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        flex-wrap: wrap;
+                        gap: 12px;
+                    "
+                >
+
+                    <div>
+
+                        <h2
+                            style="
+                                font-size: 20px;
+                                font-weight: 800;
+                                color: var(--brand-dark);
+                            "
+                        >
+                            ⭐ Citizen Satisfaction & Feedback Analytics
+                        </h2>
+
+                        <p
+                            style="
+                                font-size: 13px;
+                                color: var(--text-muted);
+                            "
+                        >
+                            Real ratings submitted by verified citizens
+                            following issue resolution.
+                        </p>
+
+                    </div>
+
+
+                    <span
+                        class="badge badge-resolved"
+                        style="
+                            font-size: 13px;
+                            padding: 6px 12px;
+                        "
+                    >
+                        Total Reviews: {{ feedback_summary.total }}
+                    </span>
+
+                </div>
+
+
+                <div class="feedback-metrics-row">
+
+
+                    <!-- AVERAGE RATING -->
+                    <div class="avg-rating-hero">
+
+                        <div class="avg-score">
+                            {{ feedback_summary.avg }}
+                        </div>
+
+                        <div class="avg-stars">
+                            ★★★★★
+                        </div>
+
+                        <div
+                            style="
+                                font-size: 12px;
+                                font-weight: 700;
+                                color: #78350f;
+                            "
+                        >
+                            Overall Citizen Score
+                        </div>
+
+                        <div
+                            style="
+                                font-size: 11px;
+                                color: #92400e;
+                                margin-top: 2px;
+                            "
+                        >
+                            Based on
+                            {{ feedback_summary.total }}
+                            verified reviews
+                        </div>
+
+                    </div>
+
+
+                    <!-- STAR BREAKDOWN -->
+                    <div class="rating-bars-wrap">
+
+                        {% set total_fb =
+                            feedback_summary.total
+                            if feedback_summary.total > 0
+                            else 1
+                        %}
+
+
+                        <!-- 5 STAR -->
+                        <div class="rating-bar-row">
+
+                            <span
+                                style="
+                                    width: 60px;
+                                    font-weight: 700;
+                                "
+                            >
+                                5 Stars
+                            </span>
+
+                            <div class="rating-bar-fill-track">
+
+                                <div
+                                    class="rating-bar-fill"
+                                    data-width="{{ (feedback_summary.star5 / total_fb) * 100 }}"
+                                ></div>
+
+                            </div>
+
+                            <span
+                                style="
+                                    width: 30px;
+                                    text-align: right;
+                                    color: var(--text-muted);
+                                "
+                            >
+                                {{ feedback_summary.star5 }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- 4 STAR -->
+                        <div class="rating-bar-row">
+
+                            <span
+                                style="
+                                    width: 60px;
+                                    font-weight: 700;
+                                "
+                            >
+                                4 Stars
+                            </span>
+
+                            <div class="rating-bar-fill-track">
+
+                                <div
+                                    class="rating-bar-fill"
+                                    data-width="{{ (feedback_summary.star4 / total_fb) * 100 }}"
+                                ></div>
+
+                            </div>
+
+                            <span
+                                style="
+                                    width: 30px;
+                                    text-align: right;
+                                    color: var(--text-muted);
+                                "
+                            >
+                                {{ feedback_summary.star4 }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- 3 STAR -->
+                        <div class="rating-bar-row">
+
+                            <span
+                                style="
+                                    width: 60px;
+                                    font-weight: 700;
+                                "
+                            >
+                                3 Stars
+                            </span>
+
+                            <div class="rating-bar-fill-track">
+
+                                <div
+                                    class="rating-bar-fill"
+                                    data-width="{{ (feedback_summary.star3 / total_fb) * 100 }}"
+                                ></div>
+
+                            </div>
+
+                            <span
+                                style="
+                                    width: 30px;
+                                    text-align: right;
+                                    color: var(--text-muted);
+                                "
+                            >
+                                {{ feedback_summary.star3 }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- 2 STAR -->
+                        <div class="rating-bar-row">
+
+                            <span
+                                style="
+                                    width: 60px;
+                                    font-weight: 700;
+                                "
+                            >
+                                2 Stars
+                            </span>
+
+                            <div class="rating-bar-fill-track">
+
+                                <div
+                                    class="rating-bar-fill"
+                                    data-width="{{ (feedback_summary.star2 / total_fb) * 100 }}"
+                                ></div>
+
+                            </div>
+
+                            <span
+                                style="
+                                    width: 30px;
+                                    text-align: right;
+                                    color: var(--text-muted);
+                                "
+                            >
+                                {{ feedback_summary.star2 }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- 1 STAR -->
+                        <div class="rating-bar-row">
+
+                            <span
+                                style="
+                                    width: 60px;
+                                    font-weight: 700;
+                                "
+                            >
+                                1 Star
+                            </span>
+
+                            <div class="rating-bar-fill-track">
+
+                                <div
+                                    class="rating-bar-fill"
+                                    data-width="{{ (feedback_summary.star1 / total_fb) * 100 }}"
+                                ></div>
+
+                            </div>
+
+                            <span
+                                style="
+                                    width: 30px;
+                                    text-align: right;
+                                    color: var(--text-muted);
+                                "
+                            >
+                                {{ feedback_summary.star1 }}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- RECENT REVIEWS -->
+                <h3
+                    style="
+                        font-size: 16px;
+                        font-weight: 800;
+                        color: var(--brand-dark);
+                        margin: 30px 0 12px;
+                    "
+                >
+                    📝 Recent Citizen Reviews
+                </h3>
+
+
+                {% if recent_feedbacks %}
+
+                    <div style="overflow-x: auto;">
+
+                        <table class="recent-feedback-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>
+                                        Complaint ID
+                                    </th>
+
+                                    <th>
+                                        Citizen
+                                    </th>
+
+                                    <th>
+                                        Department
+                                    </th>
+
+                                    <th>
+                                        Rating
+                                    </th>
+
+                                    <th>
+                                        Feedback Experience
+                                    </th>
+
+                                    <th>
+                                        Date
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                {% for f in recent_feedbacks %}
+
+                                    <tr>
+
+                                        <td>
+                                            <strong>
+                                                CIVIC-{{ "%04d"|format(f.id) }}
+                                            </strong>
+                                        </td>
+
+                                        <td>
+                                            {{ f.reporter_name or "Verified Resident" }}
+                                        </td>
+
+                                        <td>
+                                            {{ f.department }}
+                                        </td>
+
+                                        <td
+                                            style="
+                                                color: #f59e0b;
+                                                font-size: 15px;
+                                                white-space: nowrap;
+                                            "
+                                        >
+                                            {% for i in range(f.rating) %}
+                                                ★
+                                            {% endfor %}
+                                        </td>
+
+                                        <td>
+
+                                            {% if f.feedback %}
+
+                                                "{{ f.feedback }}"
+
+                                            {% else %}
+
+                                                <span
+                                                    style="
+                                                        color: var(--text-muted);
+                                                        font-style: italic;
+                                                    "
+                                                >
+                                                    No written review
+                                                </span>
+
+                                            {% endif %}
+
+                                        </td>
+
+                                        <td
+                                            style="
+                                                color: var(--text-muted);
+                                                font-size: 12px;
+                                                white-space: nowrap;
+                                            "
+                                        >
+                                            {{ f.feedback_submitted_at or "Recently" }}
+                                        </td>
+
+                                    </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                {% else %}
+
+                    <div
+                        style="
+                            text-align: center;
+                            padding: 24px;
+                            color: var(--text-muted);
+                            font-size: 13px;
+                        "
+                    >
+                        No citizen ratings recorded yet.
+                        Ratings appear here after resolved complaints
+                        are rated by citizens.
+                    </div>
+
+                {% endif %}
+
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    <!--
+        Flask/Jinja data is kept in a JSON script block.
+        This avoids VS Code treating Jinja expressions inside
+        normal JavaScript as JavaScript syntax errors.
+    -->
+    <script id="analyticsData" type="application/json">
+    {
+        "categoryLabels": {{ category_labels|tojson }},
+        "categoryValues": {{ category_values|tojson }},
+
+        "priorityLabels": {{ priority_labels|tojson }},
+        "priorityValues": {{ priority_values|tojson }},
+
+        "departmentLabels": {{ department_labels|tojson }},
+        "departmentValues": {{ department_values|tojson }},
+
+        "statusLabels": {{ status_labels|tojson }},
+        "statusValues": {{ status_values|tojson }}
+    }
+    </script>
+
+    <script>
+        document.querySelectorAll('.rating-bar-fill').forEach(function (bar) {
+            const width = Number(bar.dataset.width || 0);
+            if (!Number.isNaN(width)) {
+                bar.style.width = width + '%';
+            }
+        });
+    </script>
+
+    <!-- Chart.js -->
+    <script>
+        window.addEventListener("DOMContentLoaded", function () {
+
+            const dataElement =
+                document.getElementById("analyticsData");
+
+            if (!dataElement) {
+                console.error(
+                    "CIVICAI analytics data element was not found."
+                );
+                return;
+            }
+
+
+            let analyticsData;
+
+            try {
+
+                analyticsData =
+                    JSON.parse(dataElement.textContent);
+
+            } catch (error) {
+
+                console.error(
+                    "CIVICAI analytics data could not be parsed:",
+                    error
+                );
+
+                return;
+            }
+
+
+            if (typeof Chart === "undefined") {
+
+                console.error(
+                    "Chart.js failed to load."
+                );
+
+                return;
+            }
+
+
+            const teal = "#0f766e";
+            const blue = "#2563eb";
+            const amber = "#f59e0b";
+            const red = "#ef4444";
+            const purple = "#9333ea";
+
+
+            const categoryCanvas =
+                document.getElementById("categoryChart");
+
+            const priorityCanvas =
+                document.getElementById("priorityChart");
+
+            const departmentCanvas =
+                document.getElementById("departmentChart");
+
+            const statusCanvas =
+                document.getElementById("statusChart");
+
+
+            /* CATEGORY CHART */
+
+            if (categoryCanvas) {
+
+                new Chart(categoryCanvas, {
+
+                    type: "doughnut",
+
+                    data: {
+
+                        labels:
+                            analyticsData.categoryLabels,
+
+                        datasets: [{
+
+                            data:
+                                analyticsData.categoryValues,
+
+                            backgroundColor: [
+                                teal,
+                                blue,
+                                amber,
+                                red,
+                                purple,
+                                "#14b8a6",
+                                "#64748b"
+                            ]
+
+                        }]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        plugins: {
+
+                            legend: {
+                                position: "right"
+                            }
+
+                        }
+
+                    }
+
+                });
+
+            }
+
+
+            /* PRIORITY CHART */
+
+            if (priorityCanvas) {
+
+                new Chart(priorityCanvas, {
+
+                    type: "pie",
+
+                    data: {
+
+                        labels:
+                            analyticsData.priorityLabels,
+
+                        datasets: [{
+
+                            data:
+                                analyticsData.priorityValues,
+
+                            backgroundColor: [
+                                red,
+                                amber,
+                                teal
+                            ]
+
+                        }]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        plugins: {
+
+                            legend: {
+                                position: "bottom"
+                            }
+
+                        }
+
+                    }
+
+                });
+
+            }
+
+
+            /* DEPARTMENT CHART */
+
+            if (departmentCanvas) {
+
+                new Chart(departmentCanvas, {
+
+                    type: "bar",
+
+                    data: {
+
+                        labels:
+                            analyticsData.departmentLabels,
+
+                        datasets: [{
+
+                            label: "Complaints",
+
+                            data:
+                                analyticsData.departmentValues,
+
+                            backgroundColor: teal,
+
+                            borderRadius: 6
+
+                        }]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        plugins: {
+
+                            legend: {
+                                display: false
+                            }
+
+                        },
+
+                        scales: {
+
+                            y: {
+
+                                beginAtZero: true,
+
+                                ticks: {
+                                    precision: 0
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                });
+
+            }
+
+
+            /* STATUS CHART */
+
+            if (statusCanvas) {
+
+                new Chart(statusCanvas, {
+
+                    type: "bar",
+
+                    data: {
+
+                        labels:
+                            analyticsData.statusLabels,
+
+                        datasets: [{
+
+                            label: "Count",
+
+                            data:
+                                analyticsData.statusValues,
+
+                            backgroundColor: blue,
+
+                            borderRadius: 6
+
+                        }]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        plugins: {
+
+                            legend: {
+                                display: false
+                            }
+
+                        },
+
+                        scales: {
+
+                            y: {
+
+                                beginAtZero: true,
+
+                                ticks: {
+                                    precision: 0
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                });
+
+            }
+
+        });
+    </script>
+
+</body>
+</html>

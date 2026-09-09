@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIVICAI - Choose Portal</title>
+    <title>CIVICAI – Choose Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='civicai.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='civicai-logo.svg') }}">
+    <style>
+        body { background: #eef5f8; }
+        .portal-page { margin: 0 auto; max-width: 1050px; padding: 42px 22px 60px; }
+        .portal-brand { align-items: center; color: #12355b; display: flex; font-size: 22px; font-weight: 800; gap: 10px; text-decoration: none; }
+        .portal-brand img { height: 42px; width: 42px; }
+        .portal-brand small { color: #5b7894; display: block; font-size: 10px; font-weight: 500; margin-top: 3px; }
+        .portal-intro { margin: 75px auto 38px; max-width: 680px; text-align: center; }
+        .portal-intro h1 { color: #12355b; font-size: clamp(32px, 5vw, 56px); line-height: 1.05; margin: 0 0 15px; }
+        .portal-intro p { color: #557087; font-size: 16px; line-height: 1.6; margin: 0; }
+        .portal-options { display: grid; gap: 20px; grid-template-columns: repeat(2, 1fr); }
+        .portal-option { background: #fff; border: 1px solid #d5e3eb; border-radius: 12px; box-shadow: 0 14px 30px rgba(35, 75, 103, .08); display: flex; flex-direction: column; padding: 30px; }
+        .portal-option.staff { background: #12355b; border-color: #12355b; color: #fff; }
+        .portal-icon { align-items: center; background: #e5f3f7; border-radius: 50%; color: #0f766e; display: flex; font-size: 28px; height: 58px; justify-content: center; margin-bottom: 20px; width: 58px; }
+        .staff .portal-icon { background: #d8f2ed; }
+        .portal-option h2 { color: #12355b; font-size: 24px; margin: 0 0 10px; }
+        .staff h2 { color: #fff; }
+        .portal-option p { color: #607b8e; line-height: 1.6; margin: 0 0 24px; }
+        .staff p { color: #c9dce8; }
+        .portal-option ul { color: #557087; line-height: 2; margin: 0 0 25px; padding-left: 19px; }
+        .staff ul { color: #d1e5eb; }
+        .portal-button { background: #0f766e; border-radius: 7px; color: #fff; display: inline-block; font-weight: 700; margin-top: auto; padding: 13px 18px; text-align: center; text-decoration: none; }
+        .staff .portal-button { background: #f2b84b; color: #12355b; }
+        @media (max-width: 680px) { .portal-page { padding-top: 25px; } .portal-intro { margin-top: 60px; } .portal-options { grid-template-columns: 1fr; } }
+        .portal-hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #071321 0%, #0f2942 50%, #0f766e 100%);
+        }
+        .portal-card-wrap {
+            max-width: 920px;
+            width: 100%;
+        }
+        .portal-title-block {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 40px;
+        }
+        .portal-title-block h1 {
+            font-size: clamp(28px, 4.5vw, 44px);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-top: 10px;
+        }
+        .portal-grid-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        .portal-choice-card {
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            padding: 36px 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.25s ease;
+            border: 2px solid transparent;
+        }
+        .portal-choice-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+        }
+        .portal-choice-card.citizen:hover {
+            border-color: var(--brand-teal);
+        }
+        .portal-choice-card.staff:hover {
+            border-color: var(--brand-blue);
+        }
+        .choice-icon {
+            font-size: 40px;
+            margin-bottom: 14px;
+        }
+        .choice-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--brand-dark);
+            margin-bottom: 8px;
+        }
+        .choice-desc {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.55;
+            margin-bottom: 24px;
+        }
+        .choice-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 28px;
+        }
+        .choice-features li {
+            font-size: 13px;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        @media (max-width: 700px) {
+            .portal-grid-options { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <main class="portal-page">
+        <a class="portal-brand" href="/">
+            <img src="{{ url_for('static', filename='civicai-logo.svg') }}" alt="">
+            <span>CIVICAI<small>Smart civic complaint management</small></span>
+        </a>
+        <section class="portal-intro">
+            <h1>Welcome to CIVICAI</h1>
+            <p>Choose the portal that matches your work. Citizens report and track issues; government teams manage, assign and resolve them.</p>
+        </section>
+        <section class="portal-options" aria-label="Choose portal">
+            <article class="portal-option">
+                <div class="portal-icon">♙</div>
+                <h2>Public Portal</h2>
+                <p>For residents and citizens.</p>
+                <ul><li>Report a civic complaint</li><li>Track complaint progress</li><li>Login to view your submissions</li></ul>
+                <a class="portal-button" href="/register">Register as Citizen</a>
+            </article>
+            <article class="portal-option staff">
+                <div class="portal-icon">▣</div>
+                <h2>Civic Operations</h2>
+                <p>For supervisors and field workers.</p>
+                <ul><li>Supervisor control center</li><li>Assign complaints to workers</li><li>Update field resolution status</li></ul>
+                <a class="portal-button" href="/government">Staff Login</a>
+            </article>
+        </section>
+    <main class="portal-hero">
+        <div class="portal-card-wrap">
+            <div class="portal-title-block">
+                <img src="{{ url_for('static', filename='civicai-logo.svg') }}" alt="CIVICAI" style="height: 52px; width: 52px; background: #fff; padding: 6px; border-radius: 10px;">
+                <h1>Welcome to CIVICAI</h1>
+                <p style="color: #cbd5e1; font-size: 16px; max-width: 540px; margin: 6px auto 0;">
+                    AI-Powered Civic Issue Detection, Prioritization & Resolution Platform
+                </p>
+            </div>
+
+            <div class="portal-grid-options">
+                <!-- CITIZEN PORTAL -->
+                <div class="portal-choice-card citizen">
+                    <div>
+                        <div class="choice-icon">🏘️</div>
+                        <h2 class="choice-title">Citizen Portal</h2>
+                        <p class="choice-desc">
+                            Report local civic issues in seconds with photo & GPS, track real-time resolution, and rate completed work.
+                        </p>
+                        <ul class="choice-features">
+                            <li><span style="color: var(--success); font-weight: 700;">✓</span> Instant Mobile OTP Login (No password needed)</li>
+                            <li><span style="color: var(--success); font-weight: 700;">✓</span> GPS boundary & AI classification</li>
+                            <li><span style="color: var(--success); font-weight: 700;">✓</span> Transparent 7-stage live tracking</li>
+                            <li><span style="color: var(--success); font-weight: 700;">✓</span> 5-Star feedback & satisfaction rating</li>
+                        </ul>
+                    </div>
+                    <a href="/" class="btn btn-primary btn-block" style="padding: 13px; font-size: 15px;">
+                        Enter Citizen Portal →
+                    </a>
+                </div>
+
+                <!-- STAFF OPERATIONS -->
+                <div class="portal-choice-card staff">
+                    <div>
+                        <div class="choice-icon">🏢</div>
+                        <h2 class="choice-title">Municipal Operations</h2>
+                        <p class="choice-desc">
+                            Authorized workspace for department supervisors and field technicians to manage tickets, assign jobs, and verify repairs.
+                        </p>
+                        <ul class="choice-features">
+                            <li><span style="color: var(--brand-blue); font-weight: 700;">✓</span> Supervisor dispatch & worker assignment</li>
+                            <li><span style="color: var(--brand-blue); font-weight: 700;">✓</span> Field worker task management & GPS photo proof</li>
+                            <li><span style="color: var(--brand-blue); font-weight: 700;">✓</span> Resolution verification & distance audit</li>
+                            <li><span style="color: var(--brand-blue); font-weight: 700;">✓</span> Citizen feedback intelligence & charts</li>
+                        </ul>
+                    </div>
+                    <a href="/staff/login" class="btn btn-blue btn-block" style="padding: 13px; font-size: 15px;">
+                        Staff / Operations Login →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

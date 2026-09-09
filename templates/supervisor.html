@@ -1,0 +1,579 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIVICAI | Supervisor Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='civicai.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='civicai-logo.svg') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body {
+            background: #f4f7fb;
+            color: #1f2937;
+        }
+        a { text-decoration: none; }
+        .topbar {
+            background: #111827;
+            color: white;
+            padding: 18px 32px;
+        }
+        .topbar-inner {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            font-size: 1.2rem;
+        }
+        .brand img {
+            width: 32px;
+            height: 32px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 18px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            color: white;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 28px auto;
+            padding: 0 20px 40px;
+        }
+        .header {
+            margin-bottom: 22px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 6px;
+            color: #111827;
+        }
+        .header p {
+            color: #6b7280;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+            padding: 16px 18px;
+            text-align: center;
+        }
+        .stat-card strong {
+            display: block;
+            font-size: 1.8rem;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+        .stat-card span {
+            font-size: 11px;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            color: #6b7280;
+            font-weight: 700;
+        }
+        .filter-panel {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+        }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            align-items: end;
+        }
+        .filter-grid label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .filter-grid input,
+        .filter-grid select,
+        .filter-grid button {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #dbe2ea;
+            background: #fff;
+            font-size: 14px;
+        }
+        .filter-grid button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        .map-box {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+        }
+        .map-box h3 {
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+        #supMap {
+            width: 100%;
+            height: 320px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #cfe1f7;
+        }
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 18px;
+        }
+        .report-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+            border-top: 4px solid #3b82f6;
+        }
+        .report-card.priority-high { border-top-color: #ef4444; }
+        .report-card.priority-medium { border-top-color: #f59e0b; }
+        .report-card.priority-low { border-top-color: #10b981; }
+        .card-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            padding: 16px 18px;
+            background: #fafcff;
+            border-bottom: 1px solid #eef2f7;
+        }
+        .card-head h3 {
+            font-size: 1rem;
+        }
+        .priority-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+        }
+        .priority-high .priority-badge { background: #fee2e2; color: #991b1b; }
+        .priority-medium .priority-badge { background: #fef3c7; color: #92400e; }
+        .priority-low .priority-badge { background: #d1fae5; color: #065f46; }
+        .card-body {
+            padding: 18px;
+        }
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        .meta-row strong {
+            color: #475569;
+            font-weight: 700;
+        }
+        .meta-row span {
+            text-align: right;
+            color: #0f172a;
+            font-weight: 600;
+        }
+        .description {
+            margin-top: 12px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #334155;
+        }
+        .location {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #64748b;
+            word-break: break-word;
+        }
+        .status-pill {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            background: #e0f2fe;
+            color: #075985;
+            margin-top: 10px;
+        }
+        .action-tray {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #edf2f7;
+        }
+        .btn {
+            display: inline-block;
+            border: none;
+            border-radius: 10px;
+            padding: 9px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-secondary { background: #e2e8f0; color: #0f172a; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-block { width: 100%; }
+        .form-control {
+            width: 100%;
+            padding: 9px 10px;
+            border: 1px solid #dbe2ea;
+            border-radius: 9px;
+            background: white;
+            font-size: 13px;
+        }
+        .select-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+        }
+        .tiny-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+        .resolution-box {
+            margin-top: 12px;
+            border: 1px solid #dbeafe;
+            border-radius: 10px;
+            background: #f8fbff;
+            padding: 10px;
+            font-size: 12px;
+            color: #334155;
+        }
+        .resolution-box strong { color: #0f172a; }
+        .resolution-box img {
+            width: 100%;
+            max-height: 180px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 8px;
+            display: block;
+        }
+        .empty-state {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            color: #64748b;
+        }
+        @media (max-width: 640px) {
+            .topbar { padding: 14px 18px; }
+            .container { padding: 0 14px 30px; }
+            .card-head { flex-direction: column; align-items: flex-start; }
+            .select-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand">
+                <img src="{{ url_for('static', filename='civicai-logo.svg') }}" alt="CIVICAI logo">
+                <span>CIVICAI Supervisor</span>
+            </div>
+            <nav class="nav-links">
+                <a href="/dashboard">Dashboard</a>
+                <a href="/logout">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="header">
+            <h1>Supervisor Control Center</h1>
+            <p>Manage complaint intake, assignment, and resolution verification.</p>
+        </div>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <strong>{{ stats.total }}</strong>
+                <span>Total</span>
+            </div>
+            <div class="stat-card">
+                <strong>{{ stats.pending }}</strong>
+                <span>Pending</span>
+            </div>
+            <div class="stat-card">
+                <strong>{{ stats.high }}</strong>
+                <span>High Priority</span>
+            </div>
+            <div class="stat-card">
+                <strong>{{ stats.in_progress }}</strong>
+                <span>In Progress</span>
+            </div>
+            <div class="stat-card">
+                <strong>{{ stats.resolution_submitted }}</strong>
+                <span>Awaiting Verify</span>
+            </div>
+            <div class="stat-card">
+                <strong>{{ stats.resolved }}</strong>
+                <span>Resolved</span>
+            </div>
+        </section>
+
+        <section class="filter-panel">
+            <form method="GET" action="{{ url_for('supervisor') }}">
+                <div class="filter-grid">
+                    <div>
+                        <label for="department">Department</label>
+                        <select id="department" name="department">
+                            <option value="">All Departments</option>
+                            {% for dept in departments %}
+                                <option value="{{ dept.department }}" {% if selected_department == dept.department %}selected{% endif %}>{{ dept.department }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="priority">Priority</label>
+                        <select id="priority" name="priority">
+                            <option value="">All Priorities</option>
+                            <option value="High" {% if selected_priority == 'High' %}selected{% endif %}>High</option>
+                            <option value="Medium" {% if selected_priority == 'Medium' %}selected{% endif %}>Medium</option>
+                            <option value="Low" {% if selected_priority == 'Low' %}selected{% endif %}>Low</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="status">Status</label>
+                        <select id="status" name="status">
+                            <option value="">All Statuses</option>
+                            <option value="Pending" {% if selected_status == 'Pending' %}selected{% endif %}>Pending</option>
+                            <option value="Accepted" {% if selected_status == 'Accepted' %}selected{% endif %}>Accepted</option>
+                            <option value="Assigned" {% if selected_status == 'Assigned' %}selected{% endif %}>Assigned</option>
+                            <option value="In Progress" {% if selected_status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                            <option value="Resolution Submitted" {% if selected_status == 'Resolution Submitted' %}selected{% endif %}>Resolution Submitted</option>
+                            <option value="Resolved" {% if selected_status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="category">Category</label>
+                        <select id="category" name="category">
+                            <option value="">All Categories</option>
+                            {% set category_values = [] %}
+                            {% for report in reports %}
+                                {% if report.category and report.category not in category_values %}
+                                    {% set _ = category_values.append(report.category) %}
+                                    <option value="{{ report.category }}" {% if selected_category == report.category %}selected{% endif %}>{{ report.category }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="q">Search</label>
+                        <input type="text" id="q" name="q" value="{{ search_q }}" placeholder="Complaint, location, text...">
+                    </div>
+                    <div>
+                        <button type="submit">Apply Filters</button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <section class="map-box">
+            <h3>Complaint Map</h3>
+            <div id="supMap" data-reports='{{ reports | tojson | e }}'></div>
+        </section>
+
+        {% if reports %}
+            <section class="report-grid">
+                {% for report in reports %}
+                    <article class="report-card priority-{{ report.priority|lower if report.priority else 'low' }}">
+                        <div class="card-head">
+                            <h3>CIVIC-{{ "%04d"|format(report.id) }}</h3>
+                            <span class="priority-badge">{{ report.priority or 'Low' }}</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="meta-row">
+                                <strong>Category</strong>
+                                <span>{{ report.category or 'Unspecified' }}</span>
+                            </div>
+                            <div class="meta-row">
+                                <strong>Department</strong>
+                                <span>{{ report.department or 'Unassigned' }}</span>
+                            </div>
+                            <div class="meta-row">
+                                <strong>Location</strong>
+                                <span>{{ report.location or 'Not recorded' }}</span>
+                            </div>
+                            <div class="meta-row">
+                                <strong>Status</strong>
+                                <span>{{ report.status or 'Pending' }}</span>
+                            </div>
+                            <div class="meta-row">
+                                <strong>Assigned</strong>
+                                <span>{{ report.field_worker or 'Unassigned' }}</span>
+                            </div>
+
+                            <p class="description">{{ report.description or 'No description provided.' }}</p>
+                            <div class="status-pill">{{ report.status or 'Pending' }}</div>
+
+                            {% if report.resolution_note or report.resolution_photo %}
+                                <div class="resolution-box">
+                                    <strong>Resolution evidence</strong>
+                                    {% if report.resolution_note %}
+                                        <p style="margin-top: 8px;">{{ report.resolution_note }}</p>
+                                    {% endif %}
+                                    {% if report.resolution_photo %}
+                                        <img src="{{ url_for('static', filename='uploads/' + report.resolution_photo) }}" alt="Resolution photo">
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+
+                            <div class="action-tray">
+                                {% if report.status == 'Pending' %}
+                                    <form method="POST" action="{{ url_for('accept_complaint', report_id=report.id) }}">
+                                        <button type="submit" class="btn btn-primary btn-block">Accept Complaint</button>
+                                    </form>
+                                {% elif report.status in ['Accepted', 'Assigned'] %}
+                                    <label class="tiny-label">Assign field worker</label>
+                                    <form method="POST" action="{{ url_for('assign_worker', report_id=report.id) }}">
+                                        <div class="select-row">
+                                            <select name="worker_id" class="form-control" required>
+                                                <option value="">Select Worker</option>
+                                                {% for worker in workers %}
+                                                    {% if worker.department == report.department %}
+                                                        <option value="{{ worker.id }}" {% if worker.name == report.field_worker %}selected{% endif %}>{{ worker.name }} ({{ worker.status }})</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                            <button type="submit" class="btn btn-primary">Assign</button>
+                                        </div>
+                                    </form>
+                                {% elif report.status == 'Resolution Submitted' %}
+                                    <form method="POST" action="{{ url_for('verify_resolution', report_id=report.id) }}">
+                                        <div class="select-row" style="margin-top: 0;">
+                                            <button type="submit" name="action" value="approve" class="btn btn-primary" style="flex:1;">Approve</button>
+                                            <button type="submit" name="action" value="reject" class="btn btn-danger" style="flex:1;">Reject</button>
+                                        </div>
+                                    </form>
+                                {% else %}
+                                    <button type="button" class="btn btn-secondary btn-block" disabled>Workflow complete</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </section>
+        {% else %}
+            <div class="empty-state">
+                <h3>No complaints match the selected filters.</h3>
+            </div>
+        {% endif %}
+    </main>
+
+    <script>
+        const mapEl = document.getElementById("supMap");
+        const reportsData = (() => {
+            if (!mapEl || !mapEl.dataset.reports) return [];
+            try {
+                const parsed = JSON.parse(mapEl.dataset.reports || "[]");
+                return (Array.isArray(parsed) ? parsed : []).filter(function(item) {
+                    return item && item.latitude && item.longitude;
+                }).map(function(item) {
+                    return {
+                        id: item.id,
+                        category: item.category,
+                        priority: item.priority,
+                        status: item.status,
+                        lat: Number(item.latitude),
+                        lon: Number(item.longitude)
+                    };
+                });
+            } catch (error) {
+                console.error("Map data parse failed:", error);
+                return [];
+            }
+        })();
+
+        window.addEventListener("DOMContentLoaded", function() {
+            if (!mapEl) return;
+
+            const supMap = L.map("supMap").setView([25.5255, 81.8440], 12);
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(supMap);
+
+            fetch("/api/service-boundary")
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(boundary) {
+                    if (boundary && boundary.type) {
+                        L.geoJSON(boundary, {
+                            style: {
+                                color: "#0f766e",
+                                weight: 2,
+                                opacity: 0.9,
+                                fillOpacity: 0.08,
+                                fillColor: "#14b8a6"
+                            }
+                        }).addTo(supMap);
+                    }
+                })
+                .catch(function(err) {
+                    console.log("Boundary load info:", err);
+                });
+
+            reportsData.forEach(function(rep) {
+                const marker = L.marker([rep.lat, rep.lon]).addTo(supMap);
+                marker.bindPopup(
+                    '<strong>CIVIC-' + String(rep.id).padStart(4, '0') + '</strong><br>' +
+                    'Issue: ' + (rep.category || 'General') + '<br>' +
+                    'Priority: <b>' + (rep.priority || 'Low') + '</b><br>' +
+                    'Status: <i>' + (rep.status || 'Pending') + '</i>'
+                );
+            });
+
+            if (reportsData.length > 0) {
+                const group = L.featureGroup(reportsData.map(function(r) {
+                    return L.marker([r.lat, r.lon]);
+                }));
+                supMap.fitBounds(group.getBounds().pad(0.2));
+            }
+        });
+    </script>
+</body>
+</html>

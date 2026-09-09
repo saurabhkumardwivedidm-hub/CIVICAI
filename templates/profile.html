@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIVICAI - My Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='civicai.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='civicai-logo.svg') }}">
+    <style>
+        .profile-shell { max-width: 650px; margin: 55px auto; padding: 0 20px; }
+        .profile-card { background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
+        .profile-cover { background: linear-gradient(120deg, #102a43, #0f766e); height: 120px; }
+        .profile-body { padding: 0 32px 32px; }
+        .profile-avatar { background: #fff; border: 6px solid #fff; border-radius: 50%; box-shadow: 0 5px 15px rgba(16,42,67,.15); height: 116px; margin-top: -58px; object-fit: cover; width: 116px; }
+        .profile-fallback { align-items:center; background:#e6fffb; color:#0f766e; display:flex; font-size:42px; justify-content:center; }
+        .profile-body h1 { color: var(--ink); margin: 16px 0 5px; }
+        .profile-email { color: var(--muted); font-size: 14px; }
+        .complete { background: #e6fffb; border: 1px solid #99f6e4; border-radius: 9px; color: #115e59; font-size: 14px; font-weight: 700; margin: 24px 0; padding: 13px 15px; }
+        .profile-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); }
+        .profile-item { background: #f4f8fb; border: 1px solid var(--line); border-radius: 9px; padding: 13px; }
+        .profile-item span { color: var(--muted); display: block; font-size: 12px; margin-bottom: 4px; }
+        .profile-item strong { color: var(--ink); }
+        .profile-actions { display: flex; gap: 10px; margin-top: 24px; }
+        .profile-actions a { flex: 1; justify-content: center; text-align: center; }
+        @media (max-width: 560px) { .profile-body { padding: 0 20px 24px; } .profile-grid { grid-template-columns: 1fr; } .profile-actions { flex-direction: column; } }
+    </style>
+</head>
+<body>
+<nav class="navbar app-sidebar">
+    <a class="brand" href="/" aria-label="CIVICAI home">
+        <img src="{{ url_for('static', filename='civicai-logo.svg') }}" alt="">
+        <span>CIVICAI</span>
+    </a>
+    <div class="nav-links"><a href="/">Home</a><a href="/logout">Logout</a></div>
+</nav>
+<main class="profile-shell">
+    <section class="profile-card">
+        <div class="profile-cover"></div>
+        <div class="profile-body">
+            {% if user.profile_photo %}
+                <img class="profile-avatar" src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" alt="Profile photo of {{ user.name }}">
+            {% else %}
+                <div class="profile-avatar profile-fallback">♙</div>
+            {% endif %}
+            <h1>{{ user.name }}</h1>
+            <div class="profile-email">Citizen profile</div>
+            <div class="complete">{% if user.profile_photo %}✓ Profile complete: photo, name and date of birth verified.{% else %}✓ Department profile active: name, phone and department verified.{% endif %}</div>
+            <div class="profile-grid">
+                <div class="profile-item"><span>Registration number</span><strong>{{ user.account_number }}</strong></div>
+                <div class="profile-item"><span>Mobile number</span><strong>{{ user.phone }}</strong></div>
+                <div class="profile-item"><span>Date of birth</span><strong>{{ user.dob }}</strong></div>
+                <div class="profile-item"><span>Account type</span><strong>Citizen</strong></div>
+            </div>
+            <div class="profile-actions">
+                <a class="home-btn primary" href="/report">Report an Issue</a>
+                <a class="home-btn secondary" href="/track">Track Complaint</a>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaint Receipt - CIVIC-{{ "%04d"|format(report.id) }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='civicai.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='civicai-logo.svg') }}">
+    <style>
+        .receipt-wrap { max-width: 760px; margin: 45px auto; padding: 0 20px; }
+        .receipt { background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
+        .receipt-head { background: var(--ink); color: #fff; padding: 30px; }
+        .receipt-head p { color: #cbd5e1; margin-top: 6px; }
+        .receipt-number { color: #99f6e4; font-size: 30px; font-weight: 800; margin-top: 20px; }
+        .receipt-body { padding: 30px; }
+        .receipt-wrap { max-width: 740px; margin: 35px auto; padding: 0 20px; }
+        .receipt { background: #fff; border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); overflow: hidden; }
+        .receipt-head { background: var(--brand-dark); color: #fff; padding: 28px 32px; }
+        .receipt-head p { color: #94a3b8; font-size: 13px; margin-top: 4px; }
+        .receipt-number { color: #5eead4; font-size: 30px; font-weight: 800; margin-top: 14px; }
+        .receipt-body { padding: 32px; }
+        .receipt-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        .receipt-item { background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+        .receipt-label { color: var(--muted); font-size: 12px; margin-bottom: 5px; }
+        .receipt-value { font-weight: 700; overflow-wrap: anywhere; }
+        .receipt-note { background: #e6fffb; border: 1px solid #99f6e4; border-radius: 10px; color: #115e59; line-height: 1.6; margin-top: 22px; padding: 15px; }
+        .eta-box { background: #fff4cf; border: 1px solid #e6b93f; border-radius: 10px; color: #694900; line-height: 1.5; margin-top: 20px; padding: 15px; }
+        .eta-box strong { color: #4d3500; }
+        .resolution-box { background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px; color: #166534; line-height: 1.5; margin-top: 20px; padding: 15px; }
+        .resolution-box img { border-radius: 8px; display: block; margin-top: 12px; max-height: 260px; max-width: 100%; object-fit: cover; }
+        .receipt-actions { display: flex; gap: 10px; margin-top: 24px; }
+        .receipt-actions button, .receipt-actions a { border: 0; cursor: pointer; display: inline-block; font-weight: 700; padding: 12px 16px; text-decoration: none; }
+        .receipt-actions button { color: #fff; }
+        .receipt-actions a { border: 1px solid var(--line); border-radius: 9px; color: var(--ink); }
+        .receipt-item { background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; }
+        .receipt-label { color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+        .receipt-value { font-weight: 700; color: var(--brand-dark); font-size: 14px; overflow-wrap: anywhere; }
+        .receipt-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: center; }
+        @media print {
+            .navbar, .receipt-actions { display: none; }
+            .civic-navbar, .receipt-actions { display: none !important; }
+            body { background: #fff !important; }
+            .receipt-wrap { margin: 0 auto; }
+            .receipt { box-shadow: none; }
+            .receipt-wrap { margin: 0 auto; padding: 0; }
+            .receipt { box-shadow: none; border: 1px solid #000; }
+        }
+        @media (max-width: 600px) {
+            .receipt-grid { grid-template-columns: 1fr; }
+            .receipt-head, .receipt-body { padding: 22px; }
+            .receipt-actions { flex-direction: column; }
+            .receipt-actions button, .receipt-actions a { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <a class="brand" href="/" aria-label="CIVICAI home">
+        <img src="{{ url_for('static', filename='civicai-logo.svg') }}" alt="">
+        <span>CIVICAI</span>
+    </a>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/track">Track Complaint</a>
+    </div>
+</nav>
+<main class="receipt-wrap">
+    <article class="receipt">
+        <header class="receipt-head">
+            <strong>CIVICAI • Complaint Acknowledgement</strong>
+            <p>Keep this receipt as proof of submission.</p>
+            <div class="receipt-number">CIVIC-{{ "%04d"|format(report.id) }}</div>
+        </header>
+        <section class="receipt-body">
+            <div class="receipt-grid">
+                <div class="receipt-item">
+                    <div class="receipt-label">Submitted on</div>
+                    <div class="receipt-value">{{ report.created_at or "Recorded in system" }}</div>
+    <nav class="civic-navbar">
+        <div class="civic-nav-inner">
+            <a class="civic-brand" href="/">
+                <img src="{{ url_for('static', filename='civicai-logo.svg') }}" alt="CIVICAI">
+                <div class="civic-brand-text">
+                    <strong>CIVICAI</strong>
+                    <small>Official Acknowledgement</small>
+                </div>
+                <div class="receipt-item">
+                    <div class="receipt-label">Current status</div>
+                    <div class="receipt-value">{{ report.status }}</div>
+            </a>
+            <div class="civic-nav-links">
+                <a href="/">Home</a>
+                <a href="/track">Track</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="receipt-wrap">
+        <article class="receipt">
+            <header class="receipt-head">
+                <strong style="font-size: 14px; letter-spacing: 0.05em; text-transform: uppercase; color: #99f6e4;">CIVICAI • Municipal Complaint Acknowledgement</strong>
+                <p>Official record of citizen complaint registration and municipal dispatch.</p>
+                <div class="receipt-number">CIVIC-{{ "%04d"|format(report.id) }}</div>
+            </header>
+
+            <section class="receipt-body">
+                <div class="receipt-grid">
+                    <div class="receipt-item">
+                        <div class="receipt-label">Submitted On</div>
+                        <div class="receipt-value">{{ report.created_at or "Recorded in system" }}</div>
+                    </div>
+                    <div class="receipt-item">
+                        <div class="receipt-label">Current Status</div>
+                        <div class="receipt-value">{{ report.status }}</div>
+                    </div>
+                    <div class="receipt-item">
+                        <div class="receipt-label">Issue Category</div>
+                        <div class="receipt-value">{{ report.category }}</div>
+                    </div>
+                    <div class="receipt-item">
+                        <div class="receipt-label">AI Recommended Priority</div>
+                        <div class="receipt-value">{{ report.priority }}</div>
+                    </div>
+                    <div class="receipt-item">
+                        <div class="receipt-label">Concerned Department</div>
+                        <div class="receipt-value">{{ report.department or "Municipal Maintenance" }}</div>
+                    </div>
+                    <div class="receipt-item">
+                        <div class="receipt-label">Assigned Personnel</div>
+                        <div class="receipt-value">{{ report.field_worker or report.supervisor or "Under Supervisor Review" }}</div>
+                    </div>
+                    <div class="receipt-item" style="grid-column: span 2;">
+                        <div class="receipt-label">Reported Location</div>
+                        <div class="receipt-value">{{ report.location }}</div>
+                    </div>
+                    <div class="receipt-item" style="grid-column: span 2;">
+                        <div class="receipt-label">Issue Description</div>
+                        <div class="receipt-value" style="font-weight: 500;">{{ report.description }}</div>
+                    </div>
+                </div>
+                <div class="receipt-item">
+                    <div class="receipt-label">Issue category</div>
+                    <div class="receipt-value">{{ report.category }}</div>
+
+                <div class="receipt-actions">
+                    <button type="button" onclick="window.print()" class="btn btn-primary">
+                        🖨️ Print / Save PDF Receipt
+                    </button>
+                    <a href="{{ url_for('track_complaint_get', complaint_id='CIVIC-' ~ '%04d'|format(report.id)) }}" class="btn btn-secondary">
+                        🔎 Live Tracking Page
+                    </a>
+                </div>
+                <div class="receipt-item">
+                    <div class="receipt-label">Priority</div>
+                    <div class="receipt-value">{{ report.priority }}</div>
+                </div>
+                <div class="receipt-item">
+                    <div class="receipt-label">Department</div>
+                    <div class="receipt-value">{{ report.department or "Being assigned" }}</div>
+                </div>
+                <div class="receipt-item">
+                    <div class="receipt-label">Currently with</div>
+                    <div class="receipt-value">{{ report.field_worker or report.supervisor or report.department or "Not assigned" }}</div>
+                </div>
+                <div class="receipt-item">
+                    <div class="receipt-label">Location</div>
+                    <div class="receipt-value">{{ report.location }}</div>
+                </div>
+                <div class="receipt-item">
+                    <div class="receipt-label">Tracking number</div>
+                    <div class="receipt-value">CIVIC-{{ "%04d"|format(report.id) }}</div>
+                </div>
+            </div>
+            <div class="eta-box">
+                <strong>Expected visit:</strong> {{ report.expected_visit_date or "Supervisor will confirm shortly" }}<br>
+                <strong>Estimated completion:</strong> {{ report.estimated_completion_date or "Will be updated after assignment" }}
+            </div>
+            {% if report.resolution_photo or report.resolution_note %}
+                <div class="resolution-box">
+                    <strong>Work completion update</strong>
+                    <p>{{ report.resolution_note or "Resolution proof photo submitted." }}</p>
+                    {% if report.resolution_photo %}
+                        <a href="{{ url_for('static', filename='uploads/' + report.resolution_photo) }}" target="_blank">
+                            <img src="{{ url_for('static', filename='uploads/' + report.resolution_photo) }}" alt="Resolution proof photo">
+                        </a>
+                    {% endif %}
+                    <strong>{{ "Verified by supervisor" if report.status == "Resolved" else "Awaiting supervisor verification" }}</strong>
+                </div>
+            {% endif %}
+            <div class="receipt-note">
+                This acknowledgement confirms that CIVICAI received your complaint. Use the tracking number above in every follow-up application or reminder. Use the same CIVIC number with your date of birth and password to login later. The assigned department and current owner will update as work progresses.
+            </div>
+            <div class="receipt-actions">
+                <button class="primary-btn" type="button" onclick="window.print()">🖨️ Print / Save as PDF</button>
+                <a href="{{ url_for('track') }}">Back to tracking</a>
+            </div>
+        </section>
+    </article>
+</main>
+            </section>
+        </article>
+    </main>
+</body>
+</html>

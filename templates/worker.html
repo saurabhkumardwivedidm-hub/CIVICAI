@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIVICAI - Field Worker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='civicai.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='civicai-logo.svg') }}">
+    <style>
+        .worker-shell { max-width: 1180px; margin: 0 auto; padding: 32px 22px 50px; }
+        .worker-hero { background: linear-gradient(120deg, #062b49, #087c73); color: #fff; border-radius: 18px; padding: 28px; margin-bottom: 24px; }
+        .worker-hero h1 { color: #fff !important; margin: 0 0 6px; }
+        .worker-hero p { margin: 0; color: #d7fff5; }
+        .task-card { background: #fff; border: 1px solid #d7e8ef; border-radius: 16px; padding: 22px; margin-bottom: 18px; box-shadow: 0 12px 28px rgba(6,43,73,.08); }
+        .task-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .task-head h2 { margin: 0; font-size: 20px; }
+        .task-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 18px 0; }
+        .task-meta div { background: #f1fafb; border: 1px solid #d7e8ef; border-radius: 10px; padding: 12px; }
+        .task-meta strong { display: block; color: #64748b; font-size: 11px; text-transform: uppercase; margin-bottom: 4px; }
+        .task-description { color: #334155; line-height: 1.55; margin: 14px 0; }
+        .task-photo { max-width: 220px; max-height: 160px; border-radius: 10px; border: 1px solid #d7e8ef; object-fit: cover; }
+        .resolution-form { border-top: 1px solid #e2e8f0; padding-top: 18px; margin-top: 18px; }
+        .resolution-form textarea, .resolution-form input[type="file"] { margin: 8px 0 12px; }
+        .empty-card { background: #fff; border: 1px dashed #9ccbd0; border-radius: 16px; padding: 50px 20px; text-align: center; }
+        @media (max-width: 720px) { .task-meta { grid-template-columns: 1fr; } .worker-shell { padding: 22px 14px; } }
+    </style>
+</head>
+<body>
+    <nav class="civic-navbar">
+        <div class="civic-nav-inner">
+            <a class="civic-brand" href="/">
+                <img src="{{ url_for('static', filename='civicai-logo.svg') }}" alt="CIVICAI">
+                <span class="civic-brand-text"><strong>CIVICAI</strong><small>Field Worker Dispatch</small></span>
+            </a>
+            <div class="civic-nav-links">
+                <a href="/worker" class="active">Assigned Jobs</a>
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="worker-shell">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="worker-hero">
+            <h1>👷 Welcome, {{ current_user.name }}</h1>
+            <p>{{ current_user.department or 'Municipal Operations' }} · {{ reports|length }} active task(s)</p>
+        </section>
+
+        {% if reports %}
+            {% for report in reports %}
+                <article class="task-card">
+                    <div class="task-head">
+                        <h2>Complaint #{{ "%04d"|format(report.id) }} — {{ report.category }}</h2>
+                        <span class="badge badge-progress">{{ report.status }}</span>
+                    </div>
+
+                    <div class="task-meta">
+                        <div><strong>Priority</strong>{{ report.priority or 'Normal' }}</div>
+                        <div><strong>Location</strong>📍 {{ report.location }}</div>
+                        <div><strong>Visit Target</strong>{{ report.expected_visit_date or 'Immediate' }}</div>
+                    </div>
+
+                    <p class="task-description"><strong>Description:</strong> {{ report.description }}</p>
+
+                    {% if report.photo %}
+                        <a href="{{ url_for('static', filename='uploads/' + report.photo) }}" target="_blank">
+                            <img class="task-photo" src="{{ url_for('static', filename='uploads/' + report.photo) }}" alt="Issue evidence">
+                        </a>
+                    {% endif %}
+
+                    {% if report.status == 'Assigned' %}
+                        <form method="POST" action="{{ url_for('start_work', report_id=report.id) }}">
+                            <button type="submit" class="btn btn-primary">▶ Start Work</button>
+                        </form>
+                    {% elif report.status == 'In Progress' %}
+                        <form class="resolution-form" method="POST" action="{{ url_for('submit_resolution', report_id=report.id) }}" enctype="multipart/form-data">
+                            <label for="resolution_note_{{ report.id }}">Resolution Note</label>
+                            <textarea id="resolution_note_{{ report.id }}" name="resolution_note" required placeholder="Describe the completed work..."></textarea>
+
+                            <label for="resolution_photo_{{ report.id }}">Resolution Photo</label>
+                            <input id="resolution_photo_{{ report.id }}" type="file" name="resolution_photo" accept="image/jpeg,image/png,image/webp" required>
+
+                            <input type="hidden" name="resolution_latitude" id="res_lat_{{ report.id }}">
+                            <input type="hidden" name="resolution_longitude" id="res_lon_{{ report.id }}">
+                            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+                                <button type="button" class="btn btn-secondary" onclick="captureWorkerLocation({{ report.id }})">📍 Capture GPS</button>
+                                <span id="gpsStatus_{{ report.id }}" style="font-size:12px; align-self:center;">GPS recommended</span>
+                            </div>
+                            <button type="submit" class="btn btn-primary">✓ Submit Resolution</button>
+                        </form>
+                    {% elif report.status == 'Resolution Submitted' %}
+                        <div class="alert warning">⏳ Resolution proof submitted. Waiting for supervisor verification.</div>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        {% else %}
+            <div class="empty-card">
+                <div style="font-size:44px;">📋</div>
+                <h2>No Active Complaints Assigned</h2>
+                <p>New complaints dispatched by your supervisor will appear here.</p>
+            </div>
+        {% endif %}
+    </main>
+
+    <script>
+        function captureWorkerLocation(reportId) {
+            const status = document.getElementById('gpsStatus_' + reportId);
+            if (!navigator.geolocation) {
+                if (status) status.textContent = 'GPS is not supported by this browser.';
+                return;
+            }
+            if (status) status.textContent = 'Requesting GPS...';
+            navigator.geolocation.getCurrentPosition(function(position) {
+                document.getElementById('res_lat_' + reportId).value = position.coords.latitude.toFixed(6);
+                document.getElementById('res_lon_' + reportId).value = position.coords.longitude.toFixed(6);
+                if (status) status.textContent = '✓ GPS captured';
+            }, function() {
+                if (status) status.textContent = 'Unable to capture GPS.';
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIVICAI - Track Complaint</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='civicai.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='civicai-logo.svg') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #fff9ed;
+            color: #1f2937;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 7%;
+            background: #1f2937;
+            color: white;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            text-decoration: none;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .brand img { width: 34px; height: 34px; }
+        .nav-links { display: flex; gap: 22px; align-items: center; }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 980px;
+            margin: 36px auto;
+            padding: 0 20px 40px;
+        }
+        .title {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+        .title h1 {
+            margin: 0 0 8px;
+            font-size: 36px;
+            color: #111827;
+        }
+        .title p {
+            margin: 0;
+            color: #475569;
+        }
+        .search-card, .complaint-card, .not-found, .success-banner {
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+            border: 1px solid #e2e8f0;
+        }
+        .search-card {
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .search-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .search-row input {
+            flex: 1;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            font-size: 15px;
+        }
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+        .flash-messages { margin-bottom: 20px; }
+        .alert {
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .alert.success { background: #ecfdf5; color: #166534; }
+        .alert.error { background: #fef2f2; color: #991b1b; }
+        .alert.warning { background: #fff7ed; color: #9a5b00; }
+        .not-found {
+            padding: 22px;
+            text-align: center;
+            color: #991b1b;
+            margin-bottom: 20px;
+        }
+        .success-banner {
+            background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+            border-color: #86efac;
+            color: #065f46;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        .complaint-alert {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: #fff1f2;
+            border: 1px solid #fda4af;
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            color: #9f1239;
+            animation: complaint-alert-pulse 1.4s ease-in-out infinite alternate;
+        }
+        .complaint-alert.stopped { animation: none; opacity: 0.72; }
+        @keyframes complaint-alert-pulse {
+            from { box-shadow: 0 0 0 rgba(225,29,72,0); }
+            to { box-shadow: 0 0 24px rgba(225,29,72,.28); }
+        }
+        .complaint-card {
+            padding: 26px;
+            margin-bottom: 22px;
+        }
+        .complaint-header {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+        }
+        .complaint-header h2 {
+            margin: 0;
+            font-size: 30px;
+            color: #111827;
+        }
+        .meta {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            background: #e0f2fe;
+            color: #075985;
+        }
+        .status-badge.resolved { background: #dcfce7; color: #166534; }
+        .status-badge.progress { background: #fef3c7; color: #92400e; }
+        .status-badge.pending { background: #f1f5f9; color: #334155; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 20px;
+        }
+        .grid-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+        .grid-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .grid-value {
+            margin-top: 8px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .detail-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 18px;
+        }
+        .detail-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
+        }
+        .detail-value {
+            color: #0f172a;
+            line-height: 1.6;
+        }
+        .map-container {
+            width: 100%;
+            height: 280px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid #dbeafe;
+            margin-top: 24px;
+        }
+        .photo-box {
+            margin-top: 20px;
+        }
+        .photo-box img {
+            display: block;
+            width: 100%;
+            max-height: 380px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid #dbeafe;
+        }
+        @media (max-width: 700px) {
+            .grid { grid-template-columns: 1fr; }
+            .search-row { flex-direction: column; }
+            .complaint-header { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="brand">
+            <img src="{{ url_for('static', filename='civicai-logo.svg') }}" alt="CIVICAI logo">
+            <span>CIVICAI</span>
+        </a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/report">Report Issue</a>
+            <a href="/track">Track</a>
+            {% if current_user %}<a href="/logout">Logout</a>{% else %}<a href="/login">Login</a>{% endif %}
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="title">
+            <h1>🔎 Track Your Complaint</h1>
+            <p>Enter your report ID to view live complaint status.</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="search-card">
+            <form method="POST" action="/track-complaint">
+                <div class="search-row">
+                    <input type="text" name="complaint_id" value="{{ searched_id or '' }}" placeholder="Example: CIVIC-0001 or 1" required>
+                    <button type="submit" class="btn btn-primary">🔎 Track</button>
+                </div>
+            </form>
+        </div>
+
+        {% if searched_id and not report %}
+            <div class="not-found">
+                <h2>❌ Complaint Not Found</h2>
+                <p>No complaint was found with Report ID #{{ searched_id }}.</p>
+            </div>
+        {% endif %}
+
+        {% if created and report %}
+            <div class="success-banner">
+                ✅ Complaint Registered Successfully! Your Complaint Number is <strong>CIVIC-{{ '%04d'|format(report.id) }}</strong>. It has been verified and dispatched to {{ report.department }}.
+            </div>
+        {% endif %}
+
+        {% if duplicate_detected and report %}
+            <div class="complaint-alert" id="complaintAlert" role="alert">
+                <strong>🚨 Complaint already registered</strong>
+                <span>This problem is already registered as <strong>CIVIC-{{ '%04d'|format(report.id) }}</strong> within {{ duplicate_distance }} metres. An alert will sound for 15 seconds. If it is not solved within 10 days, you can complain again.</span>
+                <button type="button" id="stopComplaintAlert" class="btn btn-secondary">Stop Alert</button>
+            </div>
+        {% endif %}
+
+        {% if report %}
+            <article class="complaint-card">
+                <div class="complaint-header">
+                    <div>
+                        <h2>Complaint #{{ report.id }}</h2>
+                        <div class="meta">Registered on {{ report.created_at or 'Recently' }}</div>
+                    </div>
+                    <span class="status-badge {% if report.status == 'Resolved' %}resolved{% elif report.status in ['In Progress', 'Assigned', 'Accepted', 'Resolution Submitted'] %}progress{% else %}pending{% endif %}">
+                        {% if report.status == 'Resolved' %}✅ Resolved
+                        {% elif report.status == 'Resolution Submitted' %}🔍 Resolution Submitted
+                        {% elif report.status in ['In Progress', 'Assigned', 'Accepted'] %}🔄 In Progress
+                        {% else %}⏳ Pending{% endif %}
+                    </span>
+                </div>
+
+                <div class="grid">
+                    <div class="grid-item">
+                        <div class="grid-label">Issue Category</div>
+                        <div class="grid-value">{{ report.category or 'Not available' }}</div>
+                    </div>
+                    <div class="grid-item">
+                        <div class="grid-label">Priority</div>
+                        <div class="grid-value">{{ report.priority or 'Not assigned' }}</div>
+                    </div>
+                    <div class="grid-item">
+                        <div class="grid-label">Department</div>
+                        <div class="grid-value">{{ report.department or 'Not assigned' }}</div>
+                    </div>
+                    <div class="grid-item">
+                        <div class="grid-label">Location</div>
+                        <div class="grid-value">{{ report.location or 'Location not recorded' }}</div>
+                    </div>
+                </div>
+
+                <div class="detail-box">
+                    <div class="detail-label">Description</div>
+                    <div class="detail-value">{{ report.description or 'No description available.' }}</div>
+                </div>
+
+                {% if report.verification %}
+                <div class="detail-box">
+                    <div class="detail-label">Verification</div>
+                    <div class="detail-value">{{ report.verification }}</div>
+                </div>
+                {% endif %}
+
+                {% if report.resolution_note or report.resolution_photo %}
+                <div class="detail-box">
+                    <div class="detail-label">Field Work Update</div>
+                    <div class="detail-value">{{ report.resolution_note or 'Resolution proof submitted for review.' }}</div>
+                    {% if report.resolution_photo %}
+                    <div class="photo-box">
+                        <img src="{{ url_for('static', filename='uploads/' + report.resolution_photo) }}" alt="Resolution proof photo">
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </article>
+        {% endif %}
+
+        {% if report and report.latitude is not none and report.longitude is not none %}
+            <div id="trackMap" class="map-container" data-lat="{{ report.latitude }}" data-lon="{{ report.longitude }}"></div>
+        {% endif %}
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            const mapEl = document.getElementById('trackMap');
+            if (mapEl) {
+                const lat = parseFloat(mapEl.dataset.lat);
+                const lon = parseFloat(mapEl.dataset.lon);
+                if (!isNaN(lat) && !isNaN(lon)) {
+                    const map = L.map('trackMap').setView([lat, lon], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(map);
+                    L.marker([lat, lon]).addTo(map).bindPopup('Complaint Location').openPopup();
+                }
+            }
+
+            const alertBox = document.getElementById('complaintAlert');
+            const stopButton = document.getElementById('stopComplaintAlert');
+            if (alertBox && stopButton) {
+                let stopped = false;
+                let audioContext;
+                let alertTimer;
+
+                function beep() {
+                    if (stopped) return;
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioContext) return;
+                    audioContext = audioContext || new AudioContext();
+                    const oscillator = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    oscillator.type = 'square';
+                    oscillator.frequency.value = 740;
+                    gain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.16, audioContext.currentTime + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.24);
+                    oscillator.connect(gain).connect(audioContext.destination);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.26);
+                }
+
+                function stopAlert() {
+                    stopped = true;
+                    window.clearInterval(alertTimer);
+                    if (navigator.vibrate) navigator.vibrate(0);
+                    if (audioContext) audioContext.close();
+                    alertBox.classList.add('stopped');
+                }
+
+                if (navigator.vibrate) navigator.vibrate(15000);
+                stopButton.addEventListener('click', stopAlert);
+                const startAlert = function () {
+                    if (audioContext && audioContext.state === 'suspended') {
+                        audioContext.resume();
+                    }
+                    beep();
+                    alertTimer = window.setInterval(beep, 700);
+                };
+                startAlert();
+                window.setTimeout(stopAlert, 15000);
+            }
+
+        });
+    </script>
+</body>
+</html>

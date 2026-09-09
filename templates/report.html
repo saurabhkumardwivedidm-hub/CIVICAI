@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIVICAI – Report Civic Issue</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='civicai.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='civicai-logo.svg') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #1f2937;
+        }
+        .navbar {
+            background: #111827;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 7%;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .logo img { width: 34px; height: 34px; }
+        .nav-links {
+            display: flex;
+            gap: 22px;
+            align-items: center;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .nav-links a:hover { opacity: 0.75; }
+        .main-content {
+            max-width: 980px;
+            margin: 40px auto;
+            padding: 0 20px 30px;
+        }
+        .container-narrow {
+            max-width: 780px;
+            margin: 0 auto;
+        }
+        .report-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .report-header h1 {
+            margin: 0 0 8px;
+            font-size: 32px;
+            color: #0f172a;
+        }
+        .report-header p {
+            margin: 0;
+            color: #475569;
+            font-size: 15px;
+        }
+        .card {
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+            padding: 28px;
+        }
+        .ai-banner {
+            background: linear-gradient(135deg, #e6f7f4 0%, #eff6ff 100%);
+            border: 1px solid #bbf7d0;
+            border-left: 4px solid #0f766e;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 24px;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+        .ai-banner strong {
+            display: block;
+            margin-bottom: 6px;
+            color: #0b5f59;
+        }
+        .form-group {
+            margin-bottom: 22px;
+        }
+        .required-star {
+            color: #dc2626;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        select, textarea, input[type="text"] {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            background: white;
+            font-size: 14px;
+        }
+        textarea {
+            min-height: 130px;
+            resize: vertical;
+        }
+        .location-action-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .location-status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            color: #475569;
+        }
+        .location-status-badge.captured {
+            background: #ecfdf5;
+            border-color: #86efac;
+            color: #166534;
+        }
+        .location-status-badge.waiting {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #475569;
+        }
+        .location-status-text {
+            font-size: 12px;
+            color: #475569;
+            margin-bottom: 8px;
+            min-height: 18px;
+        }
+        .demo-chip-bar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin: 8px 0 12px;
+            font-size: 12px;
+            color: #475569;
+        }
+        .demo-chip {
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            color: #0f172a;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .demo-chip.inside { border-color: #86efac; background: #ecfdf5; }
+        .demo-chip.outside { border-color: #fca5a5; background: #fff1f2; }
+        .map-container {
+            width: 100%;
+            height: 220px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #dbeafe;
+            margin-top: 8px;
+        }
+        .map-tip {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #64748b;
+        }
+        .photo-upload-box {
+            border: 2px dashed #cbd5e1;
+            border-radius: 14px;
+            background: #f8fafc;
+            padding: 18px 16px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .photo-preview-wrap {
+            display: none;
+            margin-top: 14px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #d1fae5;
+            background: #f0fdf4;
+        }
+        .photo-preview-img {
+            width: 100%;
+            max-height: 260px;
+            object-fit: cover;
+            display: block;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        .btn-primary:hover { filter: brightness(0.96); }
+        .btn-block {
+            width: 100%;
+            margin-top: 6px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 24px;
+            color: #1d4ed8;
+            text-decoration: none;
+            font-weight: 700;
+        }
+        .flash-messages {
+            max-width: 900px;
+            margin: 20px auto 0;
+            padding: 0 20px;
+        }
+        .alert {
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .alert.success { background: #ecfdf5; color: #166534; }
+        .alert.error { background: #fef2f2; color: #991b1b; }
+        .alert.warning { background: #fff7ed; color: #9a5b00; }
+        .rejection-box {
+            background: linear-gradient(135deg, #fff7ed 0%, #fff1f2 100%);
+            border: 1px solid #fed7aa;
+            border-radius: 16px;
+            padding: 24px;
+            color: #7c2d12;
+            animation: rejection-pulse 1.1s ease-in-out infinite alternate;
+        }
+        @keyframes rejection-pulse {
+            from { box-shadow: 0 0 0 rgba(239, 68, 68, 0.1); }
+            to { box-shadow: 0 0 22px rgba(239, 68, 68, 0.18); }
+        }
+        .rejection-icon { font-size: 32px; margin-bottom: 8px; }
+        .rejection-box h2 { margin: 0 0 10px; }
+        .rejection-box p { margin: 0; line-height: 1.6; }
+        .rejection-meta {
+            background: rgba(255,255,255,0.5);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+        .rejection-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+        .rejection-actions .btn {
+            text-decoration: none;
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #0f172a;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="navbar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='civicai-logo.svg') }}" alt="CIVICAI logo">
+            <span>CIVICAI</span>
+        </div>
+
+        <nav class="nav-links">
+            {% if current_user and current_user.role == 'department' %}
+                <a href="/dashboard">Dashboard</a>
+            {% endif %}
+            <a href="/">Home</a>
+            {% if current_user %}
+                <a href="/logout">Logout</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <main class="main-content">
+        <div class="container-narrow">
+            {% if false %}
+                <div class="rejection-box">
+                    <div class="rejection-icon">🚫</div>
+                    <h2>Complaint Rejected: Outside Service Area</h2>
+                    <p>
+                        Take a clear photo of the civic problem. Complaint cannot be registered because the selected location is outside the supported municipal service area.
+                    </p>
+
+                    <div class="rejection-meta">
+                        <div><strong>Target Municipality:</strong> {{ municipality_name }}</div>
+                        <div style="margin-top: 4px;"><strong>Attempted Coordinates:</strong> Latitude: {{ rejected_lat }}, Longitude: {{ rejected_lon }}</div>
+                        <div style="margin-top: 4px; color: #7c2d12;">CIVICAI only dispatches issues within authorized municipal jurisdiction. No complaint was recorded.</div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label for="photo">Issue Photo <span class="required-star">*</span></label>
+                        <div class="photo-upload-box" onclick="document.getElementById('photo').click()">
+                            <div style="font-size: 32px; margin-bottom: 6px;">📷</div>
+                            <strong>Click to Upload Issue Photo</strong>
+                            <div style="font-size: 12px; color: #64748b; margin-top: 4px;">JPG, JPEG, PNG or WEBP • Maximum 5 MB</div>
+                            <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/webp" capture="environment" style="display:none;" required>
+                        </div>
+                        <div class="photo-preview-wrap" id="previewWrap">
+                            <img id="photoPreview" class="photo-preview-img" alt="Issue Photo Preview">
+                        </div>
+                    </div>
+
+                    <div class="rejection-actions">
+                        <a href="/report" class="btn btn-primary">🔄 Try Another Location</a>
+                        <a href="/" class="btn btn-secondary">🏠 Back to Home</a>
+                    </div>
+                </div>
+            {% else %}
+                {% if invalid_photo %}
+                    <div class="alert error" id="photoAlert" role="alert">
+                        {% if missing_photo_gps %}
+                            📸 Photo rejected. This image has no camera GPS data. Use the camera at the selected location and upload the original photo; Google/downloaded photos and screenshots are not accepted.
+                        {% else %}
+                            📍 Photo rejected. Its embedded location is {{ photo_distance }} metres away from the selected complaint location. Take a new photo at the selected issue location.
+                        {% endif %}
+                    </div>
+                    {% if photo_alert %}
+                        <script>
+                            window.addEventListener('DOMContentLoaded', function () {
+                                if (navigator.vibrate) navigator.vibrate(15000);
+                                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                                if (!AudioContext) return;
+                                const context = new AudioContext();
+                                const end = context.currentTime + 15;
+                                function beep() {
+                                    if (context.currentTime >= end) {
+                                        context.close();
+                                        return;
+                                    }
+                                    const oscillator = context.createOscillator();
+                                    const gain = context.createGain();
+                                    oscillator.type = 'square';
+                                    oscillator.frequency.value = 740;
+                                    gain.gain.setValueAtTime(0.0001, context.currentTime);
+                                    gain.gain.exponentialRampToValueAtTime(0.12, context.currentTime + 0.02);
+                                    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.2);
+                                    oscillator.connect(gain).connect(context.destination);
+                                    oscillator.start();
+                                    oscillator.stop(context.currentTime + 0.22);
+                                    window.setTimeout(beep, 650);
+                                }
+                                beep();
+                            });
+                        </script>
+                    {% endif %}
+                {% endif %}
+                <div class="report-header">
+                    <h1>📢 Report a Civic Issue</h1>
+                    <p>Help municipal teams identify, prioritize and fix community problems</p>
+                </div>
+
+                <div class="card">
+                    <div class="ai-banner">
+                        <strong>🤖 AI-Powered Detection & Automatic Dispatch</strong>
+                        Our natural language system analyzes your description to recommend urgency priority (High / Medium / Low) and instantly routes the ticket to the responsible department.
+                    </div>
+
+                    <form action="/report" method="POST" enctype="multipart/form-data" id="reportForm">
+                        <div class="form-group">
+                            <label for="category">Issue Category <span class="required-star">*</span></label>
+                            <select id="category" name="category" required>
+                                <option value="">Select Category</option>
+                                <option value="Pothole / Damaged Road">Pothole / Damaged Road</option>
+                                <option value="Garbage Overflow">Garbage Overflow</option>
+                                <option value="Broken Streetlight">Broken Streetlight</option>
+                                <option value="Water Leakage">Water Leakage</option>
+                                <option value="Drainage Issue">Drainage Issue</option>
+                                <option value="Damaged Public Infrastructure">Damaged Public Infrastructure</option>
+                                <option value="Other">Other / General Issue</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Issue Description <span class="required-star">*</span></label>
+                            <textarea
+                                id="description"
+                                name="description"
+                                placeholder="Describe the civic issue in detail (e.g. Large dangerous pothole near market causing accidents...)"
+                                required
+                            ></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Current GPS Location <span class="required-star">*</span></label>
+
+                            <div class="location-action-bar">
+                                <button type="button" class="btn btn-primary" id="locationButton">📍 Use My Current Location</button>
+                                <div id="locBadge" class="location-status-badge waiting"><span>⏳ Location not captured yet</span></div>
+                            </div>
+
+                            <div id="locationStatus" class="location-status-text" aria-live="polite"></div>
+
+                            <input type="hidden" id="latitude" name="latitude" required>
+                            <input type="hidden" id="longitude" name="longitude" required>
+                            <input type="hidden" id="location" name="location">
+
+                            <div id="reportMap" class="map-container"></div>
+                            <div class="map-tip">💡 Your complaint location is pinned here. You can drag the pin to fine-tune it.</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="photo">Issue Photo <span class="required-star">*</span></label>
+                            <div class="photo-upload-box" onclick="document.getElementById('photo').click()">
+                                <div style="font-size: 32px; margin-bottom: 6px;">📷</div>
+                                <strong>Click to Upload Issue Photo</strong>
+                                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Use the camera at the selected location. Original GPS photo required; Google/downloaded photos are rejected.</div>
+                                <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/webp,image/jpg" capture="environment" style="display:none;" required>
+                            </div>
+
+                            <div class="photo-preview-wrap" id="previewWrap">
+                                <img id="photoPreview" class="photo-preview-img" alt="Photo Preview">
+                            </div>
+                        </div>
+
+                        <button type="submit" id="submitBtn" class="btn btn-primary btn-block">🚀 Submit Complaint</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map, marker, boundaryLayer;
+        const defaultCenter = [25.5255, 81.8440];
+
+        function initMap() {
+            const mapEl = document.getElementById('reportMap');
+            if (!mapEl) return;
+
+            map = L.map('reportMap').setView(defaultCenter, 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+
+            map.on('click', function(e) {
+                updatePin(e.latlng.lat, e.latlng.lng, e.latlng.lat.toFixed(6) + ', ' + e.latlng.lng.toFixed(6));
+            });
+        }
+
+        function updatePin(lat, lon, text) {
+            const latitudeInput = document.getElementById('latitude');
+            const longitudeInput = document.getElementById('longitude');
+            const locationInput = document.getElementById('location');
+            const locBadge = document.getElementById('locBadge');
+
+            if (latitudeInput) latitudeInput.value = lat.toFixed(6);
+            if (longitudeInput) longitudeInput.value = lon.toFixed(6);
+            if (locationInput) locationInput.value = text || (lat.toFixed(6) + ', ' + lon.toFixed(6));
+
+            if (locBadge) {
+                locBadge.className = 'location-status-badge captured';
+                locBadge.innerHTML = '<span>✓ Location Captured: ' + lat.toFixed(4) + ', ' + lon.toFixed(4) + '</span>';
+            }
+
+            if (marker) {
+                marker.setLatLng([lat, lon]);
+            } else if (map) {
+                marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+                marker.on('dragend', function(event) {
+                    const pos = event.target.getLatLng();
+                    updatePin(pos.lat, pos.lng, pos.lat.toFixed(6) + ', ' + pos.lng.toFixed(6));
+                });
+            }
+
+            if (map) map.panTo([lat, lon]);
+        }
+
+        function setPresetLocation(lat, lon, label) {
+            updatePin(lat, lon, label);
+            if (map) map.setView([lat, lon], 14);
+        }
+
+        function getCurrentLocation() {
+            const status = document.getElementById('locationStatus');
+            const button = document.getElementById('locationButton');
+            const badge = document.getElementById('locBadge');
+            const latitudeInput = document.getElementById('latitude');
+            const longitudeInput = document.getElementById('longitude');
+            const locationInput = document.getElementById('location');
+
+            if (!navigator.geolocation) {
+                if (status) status.innerText = '❌ Geolocation is not supported by your browser.';
+                return;
+            }
+
+            if (button) {
+                button.disabled = true;
+                button.innerText = '📍 Getting Location...';
+            }
+
+            if (status) status.innerText = '📍 Requesting your current location...';
+
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    if (latitudeInput) latitudeInput.value = lat.toFixed(6);
+                    if (longitudeInput) longitudeInput.value = lon.toFixed(6);
+                    if (locationInput) locationInput.value = lat.toFixed(6) + ', ' + lon.toFixed(6);
+
+                    if (button) {
+                        button.disabled = false;
+                        button.innerText = '📍 Use My Current Location';
+                    }
+
+                    if (badge) {
+                        badge.className = 'location-status-badge captured';
+                        badge.innerHTML = '<span>✓ Current GPS: ' + lat.toFixed(4) + ', ' + lon.toFixed(4) + '</span>';
+                    }
+
+                    if (status) status.innerText = '✅ Current GPS location captured successfully.';
+                    updatePin(lat, lon, 'Device GPS Location');
+                },
+                function(error) {
+                    if (button) {
+                        button.disabled = false;
+                        button.innerText = '📍 Use My Current Location';
+                    }
+
+                    if (status) {
+                        if (error.code === 1) {
+                            status.innerText = '❌ Location permission denied. Please allow location access.';
+                        } else if (error.code === 2) {
+                            status.innerText = '❌ Location unavailable. Please try again.';
+                        } else if (error.code === 3) {
+                            status.innerText = '❌ Location request timed out. Please try again.';
+                        } else {
+                            status.innerText = '❌ Unable to get your current location.';
+                        }
+                    }
+
+                    if (badge) {
+                        badge.className = 'location-status-badge waiting';
+                        badge.innerHTML = '<span>⚠️ Permission denied or unavailable. Use demo chips or click map.</span>';
+                    }
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
+
+        const locationButton = document.getElementById('locationButton');
+        if (locationButton) {
+            locationButton.addEventListener('click', getCurrentLocation);
+        }
+
+        const photoInput = document.getElementById('photo');
+        if (photoInput) {
+            photoInput.addEventListener('change', function() {
+                const file = this.files[0];
+                const preview = document.getElementById('photoPreview');
+                const previewWrap = document.getElementById('previewWrap');
+
+                if (!file) {
+                    if (previewWrap) previewWrap.style.display = 'none';
+                    return;
+                }
+
+                const maxSize = 5 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    alert('❌ Photo size must be less than 5 MB.');
+                    this.value = '';
+                    if (previewWrap) previewWrap.style.display = 'none';
+                    return;
+                }
+
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('❌ Please upload JPG, JPEG, PNG or WEBP image.');
+                    this.value = '';
+                    if (previewWrap) previewWrap.style.display = 'none';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    if (preview) preview.src = event.target.result;
+                    if (previewWrap) previewWrap.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        const reportForm = document.getElementById('reportForm');
+        if (reportForm) {
+            reportForm.addEventListener('submit', function(event) {
+                const latitude = document.getElementById('latitude').value;
+                const longitude = document.getElementById('longitude').value;
+                const photo = document.getElementById('photo');
+
+                if (!photo || !photo.files.length) {
+                    event.preventDefault();
+                    alert('📸 Please upload an actual civic issue photo.');
+                    return;
+                }
+
+                if (!latitude || !longitude) {
+                    event.preventDefault();
+                    alert('📍 Please capture your current GPS location before submitting the complaint.');
+                    return;
+                }
+
+                if (!confirm('Submit this civic complaint with the selected photo and GPS location?')) {
+                    event.preventDefault();
+                    return;
+                }
+
+                const submitButton = document.getElementById('submitBtn');
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.innerText = '⏳ Submitting Report...';
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            if (navigator.geolocation) {
+                getCurrentLocation();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIVICAI - Registration Complete</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='civicai.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='civicai-logo.svg') }}">
+    <style>
+        .success-shell { max-width: 560px; margin: 70px auto; padding: 0 20px; }
+        .success-card { background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: 36px; text-align: center; }
+        .success-icon { align-items: center; background: #e6fffb; border: 1px solid #99f6e4; border-radius: 50%; color: #0f766e; display: flex; font-size: 30px; height: 64px; justify-content: center; margin: 0 auto 18px; width: 64px; }
+        .success-card h1 { color: var(--ink); margin-bottom: 8px; }
+        .success-card p { color: var(--muted); line-height: 1.55; }
+        .account-number { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; color: #c2410c; font-size: 28px; font-weight: 800; letter-spacing: .04em; margin: 24px 0 10px; padding: 15px; }
+        .save-note { color: #9a3412 !important; font-size: 13px; }
+        .sms-status { border-radius: 9px; font-size: 13px; line-height: 1.5; margin-top: 14px; padding: 12px 14px; }
+        .sms-status.sent { background: #e6fffb; border: 1px solid #99f6e4; color: #115e59; }
+        .sms-status.pending { background: #f4f8fb; border: 1px solid #d9e2ec; color: #627d98; }
+        .success-actions { display: flex; gap: 10px; margin-top: 25px; }
+        .success-actions a { flex: 1; justify-content: center; }
+        @media (max-width: 560px) { .success-card { padding: 25px 18px; } .success-actions { flex-direction: column; } }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <a class="brand" href="/" aria-label="CIVICAI home"><img src="{{ url_for('static', filename='civicai-logo.svg') }}" alt=""><span>CIVICAI</span></a>
+</nav>
+<main class="success-shell">
+    <section class="success-card">
+        <div class="success-icon">✓</div>
+        <h1>Registration successful, {{ name }}</h1>
+        <p>Your citizen account is ready. You can login anytime with your mobile number.</p>
+        <div class="account-number">{{ account_number }}</div>
+        <p class="save-note">Your mobile number is your citizen login key.</p>
+        {% if sms_sent %}
+            <div class="sms-status sent">✓ Registration success message sent to {{ phone }}.</div>
+        {% else %}
+            <div class="sms-status pending">Registration is complete. SMS service is not configured yet, so save this number here: no message was sent.</div>
+        {% endif %}
+        <div class="success-actions"><a class="home-btn primary" href="/login">Continue to Login</a><a class="home-btn secondary" href="/staff/login">Department Login</a></div>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "type": "FeatureCollection",
+  "name": "CIVICAI Municipal Service Boundary",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "MUNICIPAL-ZONE-01",
+        "name": "Prayagraj Metropolitan Municipal Corporation Area",
+        "short_name": "PMMC Service Area",
+        "zone_code": "PMC-ZONE-ALL",
+        "state": "Uttar Pradesh",
+        "country": "India",
+        "helpline": "1800-180-5145",
+        "active": true,
+        "description": "Prototype boundary for local demonstration. Replace this file with the official municipal GeoJSON before production deployment."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [81.6800, 25.4000],
+          [81.9500, 25.4000],
+          [82.0200, 25.4800],
+          [82.0200, 25.6200],
+          [81.9400, 25.6600],
+          [81.7800, 25.6600],
+          [81.6800, 25.5800],
+          [81.6700, 25.4800],
+          [81.6800, 25.4000]
+        ]]
+      }
+    }
+  ]
+}

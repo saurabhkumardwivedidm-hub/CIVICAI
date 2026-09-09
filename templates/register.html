@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIVICAI - Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='civicai.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='civicai-logo.svg') }}">
+    <style>
+        .auth-page { background:linear-gradient(135deg,#e9f8f5 0%,#edf5ff 52%,#fff2df 100%); min-height:100vh; padding:28px; }
+        .auth-layout { animation: rise-in .7s ease both; background:#fff; border:1px solid #cfe5e5; border-radius:18px; box-shadow:0 20px 55px rgba(16,42,67,.14); display:grid; grid-template-columns:minmax(300px,.85fr) minmax(420px,1.15fr); margin:auto; max-width:1100px; min-height:620px; overflow:hidden; }
+        .auth-visual { animation: visual-in 1s ease both; background:linear-gradient(145deg,rgba(9,59,83,.9),rgba(15,118,110,.7)),url("{{ url_for('static', filename='civicai-cityscape.jpg') }}") center/cover; color:#fff; padding:42px; position:relative; overflow:hidden; }
+        .auth-visual::before { animation: drift 12s ease-in-out infinite alternate; background:radial-gradient(circle,#58c4b0 0 7%,transparent 8%),radial-gradient(circle,#f7a34a 0 6%,transparent 7%); background-position:20% 25%,80% 18%; background-size:150px 150px,190px 190px; content:""; inset:0; opacity:.24; position:absolute; }
+        .auth-visual > * { position:relative; z-index:1; }
+        .visual-brand { align-items:center; display:flex; gap:10px; font-size:22px; font-weight:800; }
+        .visual-brand img { background:#fff; border-radius:10px; height:40px; padding:5px; width:40px; }
+        .visual-kicker { color:#ffd08a; font-size:11px; font-weight:700; letter-spacing:.08em; margin-top:48px; text-transform:uppercase; }
+        .auth-visual h1 { font-size:38px; line-height:1.05; margin:12px 0; max-width:280px; }
+        .auth-visual p { color:#d5edf0; font-size:13px; line-height:1.6; max-width:270px; }
+        .visual-points { list-style:none; margin:42px 0 0; padding:0; }
+        .visual-points li { align-items:center; display:flex; font-size:12px; gap:10px; margin:15px 0; }
+        .visual-points span { align-items:center; background:#147f7b; border:1px solid #72d7c6; border-radius:50%; display:flex; height:25px; justify-content:center; width:25px; }
+        .auth-form-side { padding:34px clamp(28px,5vw,66px); }
+        .auth-form-side h2 { color:#0b5362; font-size:26px; margin:0 0 5px; }
+        .auth-form-side .lead { color:#6c8297; font-size:12px; margin:0 0 20px; }
+        .role-label { color:#48627c; font-size:11px; font-weight:700; margin-bottom:8px; }
+        .role-switch { display:grid; gap:8px; grid-template-columns:repeat(3,1fr); margin-bottom:20px; }
+        .role-switch a { background:#f7fbfe; border:1px solid #d8e6f0; border-radius:7px; color:#53708a; font-size:10px; padding:10px 4px; text-align:center; text-decoration:none; }
+        .role-switch a.active, .role-switch a:hover { background:#eaf3ff; border-color:#3180dc; color:#1261c9; }
+        .role-switch strong { display:block; font-size:18px; margin-bottom:4px; }
+        .form-group { margin-bottom:13px; }
+        .form-group label { color:#48627c; display:block; font-size:11px; font-weight:700; margin-bottom:6px; }
+        .form-group input { background:#fbfdff; border:1px solid #cbdce9; border-radius:6px; font-size:13px; padding:13px; transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease; width:100%; }
+        .form-group input:focus { border-color:#0f766e; box-shadow:0 0 0 4px rgba(15,118,110,.13); transform:translateY(-1px); }
+        .auth-submit { background:linear-gradient(100deg,#0f766e,#1261c9) !important; border:0; border-radius:8px; color:#fff; cursor:pointer; font-size:13px; font-weight:700; margin-top:4px; padding:13px; transition:transform .2s ease, box-shadow .2s ease, background .2s ease; width:100%; }
+        .auth-submit:hover { background:linear-gradient(100deg,#0b5f59,#0b428d) !important; box-shadow:0 12px 24px rgba(15,118,110,.24); transform:translateY(-2px); }
+        .auth-link { color:#1261c9; font-size:12px; text-align:center; }
+        .auth-link a { color:#1261c9; font-weight:700; }
+        .flash { background:#fff7ed; border:1px solid #fed7aa; border-radius:7px; color:#9a3412; font-size:12px; margin-bottom:13px; padding:10px 12px; }
+        .flash.success { background:#e6fffb; border-color:#99f6e4; color:#115e59; }
+        .auth-note { color:#6c8297; font-size:10px; line-height:1.45; margin:3px 0 14px; }
+        .otp-preview { background:#fff4d6; border:1px solid #f6c86d; border-radius:8px; color:#8a5d00; font-size:12px; font-weight:700; margin:-2px 0 14px; padding:11px 12px; }
+        .resend-btn { background:transparent; border:0; color:#0f766e; cursor:pointer; font-size:12px; font-weight:700; margin-top:10px; }
+        @keyframes rise-in { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes visual-in { from { opacity:0; transform:scale(1.04); } to { opacity:1; transform:scale(1); } }
+        @keyframes drift { from { transform:translate3d(-8px,-5px,0) scale(1); } to { transform:translate3d(12px,8px,0) scale(1.08); } }
+        @media (max-width:760px) { .auth-page { padding:12px; } .auth-layout { grid-template-columns:1fr; } .auth-visual { min-height:300px; padding:28px; } .visual-kicker { margin-top:32px; } .visual-points { display:flex; gap:8px; margin-top:24px; } .visual-points li { flex:1; font-size:10px; margin:0; } .visual-points li span { flex:none; } .auth-form-side { padding:28px 22px; } }
+    </style>
+    <meta http-equiv="refresh" content="0; url=/login">
+    <title>Redirecting to Citizen Login...</title>
+</head>
+<body>
+<main class="auth-page">
+    <section class="auth-layout">
+        <aside class="auth-visual">
+            <div class="visual-brand"><img src="{{ url_for('static', filename='civicai-logo.svg') }}" alt=""><span>CIVICAI</span></div>
+            <div class="visual-kicker">Join the civic movement</div>
+            <h1>Register to Make a Change</h1>
+            <p>Join CIVICAI and help build a cleaner, safer and better city for everyone.</p>
+            <ul class="visual-points"><li><span>▣</span>Report issues</li><li><span>◉</span>Track progress</li><li><span>✦</span>Community impact</li></ul>
+        </aside>
+        <section class="auth-form-side">
+            <h2>Create Your Account</h2>
+            <p class="lead">Enter your name and mobile number. We will send a one-time verification code.</p>
+            <div class="role-label">Select your role to register</div>
+            <div class="role-switch"><a class="active" href="/register"><strong>♙</strong>Citizen</a><a href="/staff/register?role=Supervisor"><strong>♜</strong>Supervisor</a><a href="/staff/register?role=Field%20Worker"><strong>⚑</strong>Field Worker</a></div>
+            {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}
+            <form method="POST">
+                <div class="form-group"><label for="name">Full name *</label><input id="name" name="name" type="text" placeholder="Enter your full name" autocomplete="name" value="{{ name or '' }}" required></div>
+                <div class="form-group"><label for="phone">Mobile number *</label><input id="phone" name="phone" type="tel" placeholder="Enter your mobile number" autocomplete="tel" required value="{{ phone or '' }}"></div>
+                {% if otp_sent %}
+                    <div class="form-group"><label for="otp">One-time password *</label><input id="otp" name="otp" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="Enter 6-digit OTP" autocomplete="one-time-code" required></div>
+                    {% if otp_preview %}<div class="otp-preview">Demo OTP: {{ otp_preview }}</div>{% endif %}
+                {% endif %}
+                <p class="auth-note">Your mobile number will be used to securely find your citizen account later.</p>
+                <button class="auth-submit" type="submit">{% if otp_sent %}Verify OTP & Create Account{% else %}Send OTP{% endif %}</button>
+            </form>
+            {% if otp_sent %}<form method="POST" action="{{ url_for('resend_otp') }}" class="auth-link"><button type="submit" class="resend-btn">Resend OTP</button></form>{% endif %}
+            <p class="auth-link">Already have an account? <a href="/login">Login here</a></p>
+            <p class="auth-link"><a href="/staff/register">Department staff registration</a></p>
+        </section>
+    </section>
+</main>
+    <p>Redirecting to <a href="/login">Citizen Mobile OTP Login</a>...</p>
+</body>
+</html>
