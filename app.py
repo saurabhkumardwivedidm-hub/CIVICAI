@@ -1,4 +1,4 @@
-"""
+﻿"""
 CIVICAI - AI-Powered Civic Issue Detection, Prioritization & Resolution Platform
 Smart India Hackathon (SIH) Edition
 """
@@ -689,7 +689,7 @@ def login():
         session["user_id"] = user_id
         session["user_role"] = "citizen"
 
-        flash("✓ Mobile number verified successfully. Welcome to CIVICAI!", "success")
+        flash("âœ“ Mobile number verified successfully. Welcome to CIVICAI!", "success")
         if next_url and next_url.startswith("/") and not next_url.startswith(("//", "/\\")):
             return redirect(next_url)
         return redirect(url_for("home"))
@@ -1613,11 +1613,12 @@ def dashboard():
 # =========================================================
 # APPLICATION ENTRYPOINT
 # =========================================================
+init_db()
 
 if __name__ == "__main__":
-    init_db()
     app.run(
         debug=True,
         host="127.0.0.1",
         port=5000
     )
+
