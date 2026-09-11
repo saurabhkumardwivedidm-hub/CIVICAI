@@ -50,7 +50,7 @@
             </div>
 
             <div class="staff-note">
-                Use your permanent department number, email, or registered name with your password.
+                Use your staff username, email, or registered name with your password.
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -63,8 +63,8 @@
 
             <form method="POST" action="/staff/login">
                 <input type="hidden" name="next" value="{{ next_url or '' }}">
-                <label for="username">Department username</label>
-                <input id="username" name="username" type="text" placeholder="DEPT-0001" value="{{ username or '' }}" autocomplete="username" required>
+                <label for="username">Staff username</label>
+                <input id="username" name="username" type="text" placeholder="ROAD-SUP-01" value="{{ username or '' }}" autocomplete="username" required>
 
                 <label for="password">Password</label>
                 <input id="password" name="password" type="password" autocomplete="current-password" required>
@@ -72,6 +72,10 @@
                 <button class="btn btn-primary" type="submit">Login to Staff Panel</button>
             </form>
 
+            <p style="margin:18px 0 0; text-align:center; color:#64748b; font-size:12px;">
+                New staff member?
+                <a href="/staff/register" style="color:#087c73; font-weight:700;">Register staff account</a>
+            </p>
             <a class="staff-back" href="/login">← Citizen Login</a>
         </section>
     </main>

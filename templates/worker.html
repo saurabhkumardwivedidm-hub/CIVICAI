@@ -90,7 +90,7 @@
                             <input type="hidden" name="resolution_latitude" id="res_lat_{{ report.id }}">
                             <input type="hidden" name="resolution_longitude" id="res_lon_{{ report.id }}">
                             <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
-                                <button type="button" class="btn btn-secondary" onclick="captureWorkerLocation({{ report.id }})">📍 Capture GPS</button>
+                                <button type="button" class="btn btn-secondary capture-gps-btn" data-report-id="{{ report.id }}">📍 Capture GPS</button>
                                 <span id="gpsStatus_{{ report.id }}" style="font-size:12px; align-self:center;">GPS recommended</span>
                             </div>
                             <button type="submit" class="btn btn-primary">✓ Submit Resolution</button>
@@ -110,6 +110,16 @@
     </main>
 
     <script>
+        document.addEventListener('click', function(event) {
+            const button = event.target.closest('.capture-gps-btn');
+            if (!button) return;
+
+            const reportId = button.dataset.reportId;
+            if (!reportId) return;
+
+            captureWorkerLocation(reportId);
+        });
+
         function captureWorkerLocation(reportId) {
             const status = document.getElementById('gpsStatus_' + reportId);
             if (!navigator.geolocation) {

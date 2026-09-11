@@ -376,6 +376,42 @@
 
 
             <!-- CHART GRID -->
+            <section style="background:#fff; border:1px solid #dbe7ef; border-radius:16px; box-shadow:0 8px 24px rgba(16,42,67,.07); margin:24px 0; overflow:hidden;">
+                <div style="align-items:center; display:flex; justify-content:space-between; gap:12px; padding:18px 20px; flex-wrap:wrap;">
+                    <div>
+                        <h2 style="color:var(--brand-dark); font-size:18px; margin:0;">Super Admin Staff Overview</h2>
+                        <p style="color:var(--text-muted); font-size:12px; margin:5px 0 0;">View department accounts and the staff portal access created for your operations team.</p>
+                    </div>
+                    <a href="/staff/register" class="btn btn-primary" style="font-size:12px;">+ Register Staff</a>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table style="border-collapse:collapse; min-width:720px; width:100%;">
+                        <thead>
+                            <tr style="background:#f4f8fb; color:#587086; font-size:11px; text-align:left; text-transform:uppercase;">
+                                <th style="padding:11px 20px;">Staff member</th>
+                                <th style="padding:11px 12px;">Department</th>
+                                <th style="padding:11px 12px;">Role</th>
+                                <th style="padding:11px 12px;">Login username</th>
+                                <th style="padding:11px 20px;">Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for staff in staff_accounts %}
+                            <tr style="border-top:1px solid #edf2f7; color:#243b53; font-size:13px;">
+                                <td style="padding:12px 20px; font-weight:700;">{{ staff.name }}<br><small style="color:#829ab1;">{{ staff.phone or 'Phone not provided' }}</small></td>
+                                <td style="padding:12px;">{{ staff.department }}</td>
+                                <td style="padding:12px;">{{ staff.staff_role }}</td>
+                                <td style="padding:12px; color:#0f766e; font-weight:700;">{{ staff.account_number }}</td>
+                                <td style="padding:12px 20px;">{{ staff.created_at }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" style="padding:20px; text-align:center; color:#64748b;">No staff accounts registered yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
             <section class="charts-2x2-grid">
 
 

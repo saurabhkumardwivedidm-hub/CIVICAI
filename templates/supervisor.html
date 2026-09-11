@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,7 +11,7 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
         body {
-            background: #f4f7fb;
+            background: linear-gradient(135deg, #eef4ff 0%, #f8fafc 48%, #ecfdf5 100%);
             color: #1f2937;
         }
         a { text-decoration: none; }
@@ -73,8 +73,8 @@
             margin-bottom: 24px;
         }
         .stat-card {
-            background: white;
-            border: 1px solid #e5e7eb;
+            background: linear-gradient(145deg, #ffffff, #f8fbff);
+            border: 1px solid #dbe5f0;
             border-radius: 14px;
             box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
             padding: 16px 18px;
@@ -93,8 +93,13 @@
             color: #6b7280;
             font-weight: 700;
         }
+        .stat-card:nth-child(2) { border-top: 4px solid #f59e0b; }
+        .stat-card:nth-child(3) { border-top: 4px solid #ef4444; background: #fff5f5; }
+        .stat-card:nth-child(4) { border-top: 4px solid #3b82f6; }
+        .stat-card:nth-child(5) { border-top: 4px solid #8b5cf6; }
+        .stat-card:nth-child(6) { border-top: 4px solid #10b981; background: #f0fdf4; }
         .filter-panel {
-            background: white;
+            background: rgba(255,255,255,.9);
             border: 1px solid #e5e7eb;
             border-radius: 16px;
             padding: 18px;
@@ -134,7 +139,7 @@
             font-weight: 700;
         }
         .map-box {
-            background: white;
+            background: rgba(255,255,255,.92);
             border: 1px solid #e5e7eb;
             border-radius: 16px;
             padding: 16px;
@@ -158,8 +163,8 @@
             gap: 18px;
         }
         .report-card {
-            background: white;
-            border: 1px solid #e5e7eb;
+            background: #ffffff;
+            border: 1px solid #dbe5f0;
             border-radius: 16px;
             overflow: hidden;
             box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
@@ -168,13 +173,20 @@
         .report-card.priority-high { border-top-color: #ef4444; }
         .report-card.priority-medium { border-top-color: #f59e0b; }
         .report-card.priority-low { border-top-color: #10b981; }
+        .report-card.priority-high { background: #fff7f7; border-color: #fecaca; box-shadow: 0 10px 24px rgba(239,68,68,.12); }
+        .report-card.priority-high .card-head { background: #fee2e2; border-bottom-color: #fecaca; }
+        .report-card.priority-high .description { color: #7f1d1d; }
+        .report-card.priority-medium { background: #fffdf4; border-color: #fde68a; box-shadow: 0 10px 24px rgba(245,158,11,.10); }
+        .report-card.priority-medium .card-head { background: #fef3c7; border-bottom-color: #fde68a; }
+        .report-card.priority-low { background: #f5fffa; border-color: #bbf7d0; }
+        .report-card.priority-low .card-head { background: #dcfce7; border-bottom-color: #bbf7d0; }
         .card-head {
             display: flex;
             justify-content: space-between;
             gap: 10px;
             align-items: center;
             padding: 16px 18px;
-            background: #fafcff;
+            background: #f8fbff;
             border-bottom: 1px solid #eef2f7;
         }
         .card-head h3 {
@@ -317,6 +329,7 @@
             </div>
             <nav class="nav-links">
                 <a href="/dashboard">Dashboard</a>
+                <a href="/staff/register">Register Staff</a>
                 <a href="/logout">Logout</a>
             </nav>
         </div>

@@ -329,7 +329,7 @@
                         <div class="photo-upload-box" onclick="document.getElementById('photo').click()">
                             <div style="font-size: 32px; margin-bottom: 6px;">📷</div>
                             <strong>Click to Upload Issue Photo</strong>
-                            <div style="font-size: 12px; color: #64748b; margin-top: 4px;">JPG, JPEG, PNG or WEBP • Maximum 5 MB</div>
+                            <div style="font-size: 12px; color: #64748b; margin-top: 4px;">JPG, JPEG, PNG or WEBP • Maximum 10 MB • GPS camera photo supported</div>
                             <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/webp" capture="environment" style="display:none;" required>
                         </div>
                         <div class="photo-preview-wrap" id="previewWrap">
@@ -354,11 +354,11 @@
                     {% if photo_alert %}
                         <script>
                             window.addEventListener('DOMContentLoaded', function () {
-                                if (navigator.vibrate) navigator.vibrate(15000);
+                                if (navigator.vibrate) navigator.vibrate(5000);
                                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                                 if (!AudioContext) return;
                                 const context = new AudioContext();
-                                const end = context.currentTime + 15;
+                                const end = context.currentTime + 5;
                                 function beep() {
                                     if (context.currentTime >= end) {
                                         context.close();
@@ -440,7 +440,7 @@
                             <div class="photo-upload-box" onclick="document.getElementById('photo').click()">
                                 <div style="font-size: 32px; margin-bottom: 6px;">📷</div>
                                 <strong>Click to Upload Issue Photo</strong>
-                                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Use the camera at the selected location. Original GPS photo required; Google/downloaded photos are rejected.</div>
+                                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Use the camera at the selected location. Original GPS photo required; GPS-tagged camera photos are supported. Maximum 10 MB.</div>
                                 <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/webp,image/jpg" capture="environment" style="display:none;" required>
                             </div>
 
@@ -594,9 +594,9 @@
                     return;
                 }
 
-                const maxSize = 5 * 1024 * 1024;
+                const maxSize = 10 * 1024 * 1024;
                 if (file.size > maxSize) {
-                    alert('❌ Photo size must be less than 5 MB.');
+                    alert('❌ Photo size must be 10 MB or less.');
                     this.value = '';
                     if (previewWrap) previewWrap.style.display = 'none';
                     return;

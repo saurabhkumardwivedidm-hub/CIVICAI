@@ -161,6 +161,8 @@
             box-shadow: 0 6px 16px rgba(6,43,73,.2);
         }
         .staff-corner-link:hover { background: #087c73; color: #fff; }
+        /* Keep the legacy duplicate login markup from appearing below the main login card. */
+        body > .civic-navbar, body > .flash-messages, body > .auth-container { display: none; }
     </style>
 </head>
 <body>

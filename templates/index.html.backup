@@ -7,33 +7,24 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='civicai.css') }}">
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='civicai-logo.svg') }}">
     <style>
-        body { background: linear-gradient(135deg, #eefcf9 0%, #f4f8ff 55%, #fff8ed 100%); }
-        .citizen-page { max-width: 1100px; margin: 0 auto; padding: 44px 20px 70px; }
+        .citizen-page { max-width: 980px; margin: 0 auto; padding: 34px 20px 60px; }
         .citizen-hero {
-            background: linear-gradient(120deg, #062b49 0%, #0f766e 58%, #159a8b 100%);
+            background: linear-gradient(120deg, #062b49, #087c73);
             border-radius: 20px;
             color: #fff;
-            padding: 48px;
+            padding: 38px;
             margin-bottom: 24px;
-            box-shadow: 0 18px 42px rgba(6,43,73,.18);
-            position: relative;
-            overflow: hidden;
         }
-        .citizen-hero::after { content: "✦"; position: absolute; right: 7%; top: 18%; color: rgba(255,255,255,.2); font-size: 92px; }
         .citizen-hero h1 { color: #fff !important; margin: 0 0 8px; }
         .citizen-hero p { color: #d7fff5; margin: 0; }
-        .citizen-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+        .citizen-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
         .citizen-action {
             background: #fff;
             border: 1px solid #d7e8ef;
             border-radius: 16px;
             padding: 26px;
             box-shadow: 0 12px 28px rgba(6,43,73,.08);
-            transition: transform .2s ease, box-shadow .2s ease;
         }
-        .citizen-action:hover { transform: translateY(-5px); box-shadow: 0 18px 34px rgba(6,43,73,.14); }
-        .citizen-action:first-child { border-top: 5px solid #0f766e; }
-        .citizen-action:last-child { border-top: 5px solid #2563eb; }
         .citizen-action h2 { margin: 0 0 8px; }
         .citizen-action p { color: #64748b; min-height: 46px; }
         @media (max-width: 650px) { .citizen-actions { grid-template-columns: 1fr; } .citizen-hero { padding: 26px; } }
@@ -55,7 +46,6 @@
     <a href="https://github.com/saurabhkumardwivedidm-hub/CIVICAI/releases/latest/download/CIVICAI.apk" class="download-app-btn">
     📱 Download Android App
 </a>
-
 </nav>
 
     <main class="citizen-page">
@@ -87,3 +77,4 @@
     </main>
 </body>
 </html>
+

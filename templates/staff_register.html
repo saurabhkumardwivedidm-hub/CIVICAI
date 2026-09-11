@@ -30,19 +30,20 @@
 <main class="auth-shell">
     <section class="auth-card">
         <h1>Register department account</h1>
-        <p>Create one permanent account for your department work.</p>
-        <div class="auth-note"><strong>After registration:</strong> CIVICAI will generate a DEPT number. Save it carefully; use it with your password for every future login.</div>
+        <p>Create a permanent username and password for your department work.</p>
+        <div class="auth-note"><strong>After registration:</strong> use the username you choose with your password on the Staff Login page. Only authorized department staff should create an account.</div>
         {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}
         <form method="POST">
             <div class="auth-group"><label for="name">Full name</label><input id="name" name="name" type="text" autocomplete="name" required></div>
+            <div class="auth-group"><label for="account_number">Staff username</label><input id="account_number" name="account_number" type="text" placeholder="e.g. ROAD-SUP-01" minlength="3" maxlength="30" pattern="[A-Za-z0-9][A-Za-z0-9._-]{2,29}" autocomplete="username" required><small style="display:block; margin-top:6px; color:#64748b;">3-30 letters, numbers, dot, underscore, or hyphen.</small></div>
             <div class="auth-group"><label for="department">Department</label><select id="department" name="department" required><option value="">Select department</option>{% for item in departments %}<option value="{{ item.department }}">{{ item.department }}</option>{% endfor %}</select></div>
-            <div class="auth-group"><label for="staff_role">Work role</label><select id="staff_role" name="staff_role" required><option value="">Select role</option><option value="Supervisor">Supervisor</option><option value="Field Worker">Field Worker</option></select></div>
+            <div class="auth-group"><label for="staff_role">Work role</label><select id="staff_role" name="staff_role" required><option value="">Select role</option><option value="Supervisor" {% if selected_role == 'Supervisor' %}selected{% endif %}>Supervisor</option><option value="Field Worker" {% if selected_role == 'Field Worker' %}selected{% endif %}>Field Worker</option></select></div>
             <div class="auth-group"><label for="phone">Phone number</label><input id="phone" name="phone" type="tel" autocomplete="tel" required></div>
             <div class="auth-group"><label for="password">Password</label><input id="password" name="password" type="password" minlength="6" autocomplete="new-password" required></div>
             <div class="auth-group"><label for="confirm_password">Confirm password</label><input id="confirm_password" name="confirm_password" type="password" minlength="6" autocomplete="new-password" required></div>
             <button class="auth-submit primary-btn" type="submit">Create Department Account</button>
         </form>
-        <p class="auth-switch">Already registered? <a href="/staff/login">Login with DEPT number</a></p>
+        <p class="auth-switch">Already registered? <a href="/staff/login">Login with your staff username</a></p>
     </section>
 </main>
 </body>

@@ -300,7 +300,7 @@
         {% if duplicate_detected and report %}
             <div class="complaint-alert" id="complaintAlert" role="alert">
                 <strong>🚨 Complaint already registered</strong>
-                <span>This problem is already registered as <strong>CIVIC-{{ '%04d'|format(report.id) }}</strong> within {{ duplicate_distance }} metres. An alert will sound for 15 seconds. If it is not solved within 10 days, you can complain again.</span>
+                <span>This problem is already registered as <strong>CIVIC-{{ '%04d'|format(report.id) }}</strong> within {{ duplicate_distance }} metres. An alert will sound for 5 seconds. If it is not solved within 10 days, you can complain again.</span>
                 <button type="button" id="stopComplaintAlert" class="btn btn-secondary">Stop Alert</button>
             </div>
         {% endif %}
@@ -418,7 +418,7 @@
                     alertBox.classList.add('stopped');
                 }
 
-                if (navigator.vibrate) navigator.vibrate(15000);
+                if (navigator.vibrate) navigator.vibrate(5000);
                 stopButton.addEventListener('click', stopAlert);
                 const startAlert = function () {
                     if (audioContext && audioContext.state === 'suspended') {
@@ -428,7 +428,7 @@
                     alertTimer = window.setInterval(beep, 700);
                 };
                 startAlert();
-                window.setTimeout(stopAlert, 15000);
+                window.setTimeout(stopAlert, 5000);
             }
 
         });

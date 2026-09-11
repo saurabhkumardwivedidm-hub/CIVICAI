@@ -1,4 +1,4 @@
-﻿"""
+"""
 CIVICAI - AI-Powered Civic Issue Detection, Prioritization & Resolution Platform
 Smart India Hackathon (SIH) Edition
 """
@@ -563,6 +563,19 @@ def send_otp_sms(phone, otp):
 # CITIZEN MOBILE OTP AUTHENTICATION
 # =========================================================
 
+@app.route("/verify-otp")
+def verify_otp():
+    if not session.get("pending_phone") or not session.get("otp_hash"):
+        flash("Please request a new OTP first.", "warning")
+        return redirect(url_for("login"))
+    return render_template(
+        "otp.html",
+        next_url=request.args.get("next", ""),
+        phone=session.get("pending_phone"),
+        name=session.get("pending_name"),
+        dev_otp=session.get("dev_otp")
+    )
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     current = get_current_user()
@@ -602,8 +615,7 @@ def login():
             if elapsed < OTP_COOLDOWN_SECONDS:
                 remaining = int(OTP_COOLDOWN_SECONDS - elapsed)
                 flash(f"Please wait {remaining} seconds before requesting a new OTP.", "warning")
-                return render_template("login.html", next_url=next_url, phone=phone, name=name, otp_sent=True,
-                                       dev_otp=session.get("dev_otp"))
+                return redirect(url_for("verify_otp", next=next_url))
 
         # Generate & store OTP hash
         otp = generate_otp()
@@ -620,10 +632,10 @@ def login():
         if sent:
             session.pop("dev_otp", None)
             flash(f"Verification code sent to +91 {phone}. Enter it below to login.", "success")
-            return render_template("login.html", next_url=next_url, phone=phone, name=name, otp_sent=True)
+            return redirect(url_for("verify_otp", next=next_url))
         else:
             session["dev_otp"] = otp
-            return render_template("login.html", next_url=next_url, phone=phone, name=name, otp_sent=True, dev_otp=otp)
+            return redirect(url_for("verify_otp", next=next_url))
 
     # Step 2: Verify OTP
     elif action == "verify_otp":
@@ -633,7 +645,7 @@ def login():
 
         if not submitted_otp or len(submitted_otp) != 6 or not submitted_otp.isdigit():
             flash("Please enter a valid 6-digit OTP.", "error")
-            return render_template("login.html", next_url=next_url, phone=phone, name=name, otp_sent=True,
+            return render_template("otp.html", next_url=next_url, phone=phone, name=name,
                                    dev_otp=session.get("dev_otp"))
 
         # Check expiration
@@ -657,7 +669,7 @@ def login():
         if actual_hash != expected_hash:
             remaining = OTP_MAX_ATTEMPTS - attempts
             flash(f"Invalid verification code. {remaining} attempt(s) remaining.", "error")
-            return render_template("login.html", next_url=next_url, phone=phone, name=name, otp_sent=True,
+            return render_template("otp.html", next_url=next_url, phone=phone, name=name,
                                    dev_otp=session.get("dev_otp"))
 
         # Successful OTP verification: find or create citizen
@@ -713,7 +725,7 @@ def resend_otp():
         if elapsed < OTP_COOLDOWN_SECONDS:
             remaining = int(OTP_COOLDOWN_SECONDS - elapsed)
             flash(f"Please wait {remaining} seconds before requesting a new OTP.", "warning")
-            return redirect(url_for("login"))
+            return redirect(url_for("verify_otp"))
 
     otp = generate_otp()
     expiry = datetime.now() + timedelta(seconds=OTP_TTL_SECONDS)
@@ -730,7 +742,7 @@ def resend_otp():
         session["dev_otp"] = otp
         flash("A new demo OTP has been generated.", "info")
 
-    return redirect(url_for("login"))
+    return redirect(url_for("verify_otp"))
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -800,10 +812,12 @@ def staff_register():
     departments = conn.execute("SELECT department FROM departments ORDER BY department").fetchall()
     conn.close()
 
+    selected_role = request.args.get("role", "").strip()
     if request.method == "GET":
-        return render_template("staff_register.html", departments=departments)
+        return render_template("staff_register.html", departments=departments, selected_role=selected_role)
 
     name = request.form.get("name", "").strip()
+    account_number = request.form.get("account_number", "").strip().upper()
     department = request.form.get("department", "").strip()
     staff_role = request.form.get("staff_role", "").strip()
     phone = request.form.get("phone", "").strip()
@@ -812,26 +826,34 @@ def staff_register():
 
     valid_depts = [row["department"] for row in departments]
 
-    if not name or department not in valid_depts or staff_role not in ["Supervisor", "Field Worker"] or not password:
+    if not name or not account_number or department not in valid_depts or staff_role not in ["Supervisor", "Field Worker"] or not password:
         flash("Please complete all required fields.", "error")
-        return render_template("staff_register.html", departments=departments)
+        return render_template("staff_register.html", departments=departments, selected_role=selected_role)
+
+    if not re.fullmatch(r"[A-Z0-9][A-Z0-9._-]{2,29}", account_number):
+        flash("Username must be 3-30 characters and use only letters, numbers, dot, underscore, or hyphen.", "error")
+        return render_template("staff_register.html", departments=departments, selected_role=selected_role)
 
     if len(password) < 6:
         flash("Password must be at least 6 characters long.", "error")
-        return render_template("staff_register.html", departments=departments)
+        return render_template("staff_register.html", departments=departments, selected_role=selected_role)
 
     if password != confirm_password:
         flash("Passwords do not match.", "error")
-        return render_template("staff_register.html", departments=departments)
+        return render_template("staff_register.html", departments=departments, selected_role=selected_role)
 
     conn = get_db()
+    if conn.execute("SELECT id FROM users WHERE LOWER(account_number)=LOWER(?)", (account_number,)).fetchone():
+        conn.close()
+        flash("That staff username is already registered. Please choose another one.", "error")
+        return render_template("staff_register.html", departments=departments, selected_role=selected_role)
+
     cursor = conn.execute("""
         INSERT INTO users (name, email, password_hash, role, department, staff_role, phone, created_at)
         VALUES (?, ?, ?, 'department', ?, ?, ?, ?)
     """, (name, f"staff-{uuid.uuid4().hex[:8]}@civicai.local", generate_password_hash(password),
           department, staff_role, phone, current_time()))
 
-    account_number = f"DEPT-{cursor.lastrowid:04d}"
     conn.execute("UPDATE users SET account_number=? WHERE id=?", (account_number, cursor.lastrowid))
 
     # Also register in field_workers if worker
@@ -943,12 +965,19 @@ def report():
         latitude = None
         longitude = None
 
-    if latitude is None or longitude is None:
-        flash("GPS location is required. Please click 'Use My Current Location'.", "error")
-        return redirect(url_for("report"))
-
     if not photo_file or not photo_file.filename or not allowed_file(photo_file.filename):
         flash("Please upload a valid issue photo (JPG, JPEG, PNG, or WEBP).", "error")
+        return redirect(url_for("report"))
+
+    photo_gps = extract_photo_gps(photo_file)
+    # A camera with location tagging can provide the complaint coordinates when
+    # browser GPS is unavailable. Browser coordinates remain preferred.
+    if (latitude is None or longitude is None) and photo_gps:
+        latitude, longitude = photo_gps
+        location_text = f"{latitude:.6f}, {longitude:.6f}"
+
+    if latitude is None or longitude is None:
+        flash("GPS location is required. Please allow browser location or use a GPS-tagged camera photo.", "error")
         return redirect(url_for("report"))
 
     # 2. AI ISSUE CLASSIFICATION & PRIORITY RECOMMENDATION
@@ -960,7 +989,6 @@ def report():
 
     # 3. Require embedded photo GPS. This rejects downloaded/Google photos and
     # screenshots because they normally contain no camera location metadata.
-    photo_gps = extract_photo_gps(photo_file)
     if not photo_gps:
         return render_template(
             "report.html",
@@ -1513,6 +1541,12 @@ def dashboard():
     """).fetchone()["c"]
     resolved = conn.execute("SELECT COUNT(*) AS c FROM reports WHERE status='Resolved'").fetchone()["c"]
     high_priority = conn.execute("SELECT COUNT(*) AS c FROM reports WHERE priority='High' AND status!='Resolved'").fetchone()["c"]
+    staff_accounts = conn.execute("""
+        SELECT name, account_number, staff_role, department, phone, created_at
+        FROM users
+        WHERE role='department'
+        ORDER BY id DESC
+    """).fetchall()
 
     # Category chart
     category_rows = conn.execute("""
@@ -1588,6 +1622,7 @@ def dashboard():
         progress=progress,
         resolved=resolved,
         high_priority=high_priority,
+        staff_accounts=[dict(row) for row in staff_accounts],
         category_labels=category_labels,
         category_values=category_values,
         status_labels=status_labels,
@@ -1621,4 +1656,3 @@ if __name__ == "__main__":
         host="127.0.0.1",
         port=5000
     )
-
